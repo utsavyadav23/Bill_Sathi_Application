@@ -1,0 +1,225 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap");
+
+.subscription-container {
+  /* display: flex; */
+  width: 100%;
+  min-height: 100vh;
+  padding: 20px;
+  background: #f7f8fc;
+  box-sizing: border-box;
+}
+
+/* Left Section */
+/* Full row card */
+.current-plan-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 25px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Left text section */
+.plan-info {
+  /* display: flex; */
+  flex-direction: column;
+  text-align: left;
+}
+
+/* Breadcrumb text */
+.breadcrumb {
+  font-size: 14px;
+  color: #888;
+  margin-bottom: 5px;
+}
+
+/* Free Plan title */
+.plan-title {
+  font-size: 24px;
+  font-weight: bold;
+  margin: 5px 0;
+}
+
+/* Valid until */
+.valid-until {
+  font-size: 14px;
+  color: #555;
+}
+
+/* Right side capsule */
+.status-active {
+  background: #4caf50;
+  color: white;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+/* Right Section */
+.subscription-right {
+  flex: 1;
+}
+.choose-plan {
+  font-size: 24px;
+  font-weight: bold;
+}
+.choose-subtext {
+  color: #666;
+  margin-bottom: 20px;
+}
+
+/* Plans Section */
+.plans-container {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 30px;
+}
+.plan-card {
+  flex: 1;
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+.plan-wrapper {
+  flex: 1;
+  position: relative;
+}
+.plan-card ul {
+  list-style: none;
+  padding: 0;
+  margin: 20px 0;
+}
+.plan-card li {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+.tick {
+  color: #4caf50;
+  margin-right: 6px;
+}
+
+.cross {
+  color: #999;
+  font-size: 16px;
+}
+.plan-name {
+  font-size: 20px;
+  font-weight: bold;
+}
+.plan-price {
+  margin: 8px 0;
+}
+.price-amount {
+  font-size: 32px;
+  font-weight: 700;
+}
+
+.price-period {
+  font-size: 14px;
+  color: #666;
+  margin-left: 4px;
+}
+.current-btn {
+  background: #ccc;
+  border: none;
+  padding: 10px;
+  border-radius: 6px;
+  cursor: not-allowed;
+  width: 100%;
+}
+.upgrade-btn {
+  background: #007bff;
+  color: white;
+  border: none;
+
+  padding: 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  width: 100%;
+}
+.pro-card {
+  background: #007bff;
+  color: white;
+}
+.pro-card ul li {
+  color: white;
+}
+.pro-btn {
+  background: white;
+  color: #007bff;
+  border: none;
+  padding: 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  width: 100%;
+}
+
+/* Feature Table */
+.feature-comparison {
+  margin: 30px 0;
+}
+
+.feature-comparison-title {
+  text-align: left;
+}
+
+.feature-comparison table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.feature-comparison th,
+.feature-comparison td {
+  /* border: 1px solid #ddd; */
+  border: none;
+  border-bottom: 1px solid #ddd;
+  padding: 10px;
+  text-align: center;
+}
+.feature-comparison th {
+  background: #f0f0f0;
+}
+/* Alternate row colors */
+.feature-comparison tbody tr:nth-child(odd) {
+  background: #fff;
+}
+
+.feature-comparison tbody tr:nth-child(even) {
+  background: #f9f9f9;
+}
+
+/* Footer */
+.footer {
+  text-align: center;
+  margin-top: 30px;
+}
+.footer-logos {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  margin-top: 10px;
+}
+.footer-logos img {
+  height: 40px;
+}
+/* Most Popular Badge */
+.most-popular {
+  position: absolute;
+  top: -18px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #4caf50;
+  color: white;
+  padding: 4px 14px;
+  border-radius: 14px;
+  font-size: 12px;
+  font-weight: 600;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}

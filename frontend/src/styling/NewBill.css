@@ -1,0 +1,277 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap");
+
+.newbill-container {
+  flex: 1;
+  padding: 20px;
+  background: #f9f9f9;
+  min-height: 100vh;
+  overflow-y: auto;
+  text-align: left;
+}
+
+.page-header .breadcrumb {
+  font-family: "Inter", sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  color: #666;
+}
+.page-header .title {
+  font-weight: 700;
+  font-size: 20px;
+  margin-top: 5px;
+}
+.section {
+  margin: 20px 0;
+  background: #fff;
+  padding: 15px;
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+.section-title {
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+.customer-info {
+  display: flex;
+  gap: 20px;
+}
+.date-bill {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+.date-picker {
+  position: relative;
+}
+.calendar-icon {
+  position: absolute;
+  right: 10px;
+  top: 12px;
+  color: #555;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+  width: 100%;
+}
+.form-group label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+}
+
+.input {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+}
+.toggle-buttons {
+  display: flex;
+  gap: 10px;
+}
+.toggle-buttons button {
+  padding: 8px 12px;
+  border: none;
+  background: #eee;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.toggle-buttons button.active {
+  background: #007bff;
+  color: #fff;
+}
+.btn {
+  background: #007bff;
+  color: white;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.footer-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+.footer-buttons button {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+  background: #6c757d;
+  color: white;
+  cursor: pointer;
+}
+.footer-buttons button.preview-button {
+  background: #007bff;
+}
+.footer-buttons button.send-button {
+  background: #19a23e;
+}
+
+.customer-select {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.add-new-customer {
+  color: #007bff;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.add-new-customer:hover {
+  text-decoration: underline;
+}
+
+.plus-icon {
+  font-size: 12px;
+}
+
+.manual-section {
+  margin-top: 15px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 15px;
+}
+
+.manual-section .full-width {
+  grid-column: 1 / span 3;
+}
+
+.bill-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+.bill-table th {
+  background: #f3f2f2;
+  padding: 10px;
+  text-align: center;
+  font-weight: 600;
+  border-right: none;
+  border-left: none;
+}
+
+.bill-table td {
+  padding: 10px;
+  text-align: center;
+  border-bottom: 1px solid #eee;
+  border-right: none;
+  border-left: none;
+}
+
+.bill-table tr:last-child td {
+  border-bottom: none;
+}
+
+.action-icons {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.edit-icon {
+  color: #007bff;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.delete-icon {
+  color: #dc3545;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.delete-icon:hover {
+  color: #b02a37;
+}
+
+.edit-icon:hover {
+  color: #0056b3;
+}
+
+.bill-extras-box {
+  display: flex;
+  gap: 20px;
+}
+
+.extras-left,
+.extras-right {
+  flex: 1;
+  background: #fff;
+  padding: 15px;
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.discount {
+  display: flex;
+  gap: 10px;
+}
+
+.notes-box {
+  width: 100%;
+  resize: vertical;
+  min-height: 120px;
+}
+
+.totals-card {
+  background: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  margin-top: 20px;
+
+  margin-left: auto;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.totals-row {
+  display: flex;
+  justify-content: flex-end;
+  gap: 40px;
+  margin: 6px 0;
+}
+
+.discount-text {
+  color: green;
+}
+
+.divider {
+  border: none;
+  border-top: 1px solid #ddd;
+  margin: 12px 0;
+}
+
+.total-amount {
+  font-size: 20px;
+  font-weight: 700;
+  color: #333;
+  display: flex;
+  justify-content: flex-end;
+  gap: 40px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-start;
+  gap: 12px;
+  margin-top: 15px;
+}
+
+.btn {
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  border: none;
+}

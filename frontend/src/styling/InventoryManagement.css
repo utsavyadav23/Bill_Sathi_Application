@@ -1,0 +1,192 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap");
+
+.inventory-container {
+  padding: 20px;
+  width: 100%;
+  background: #f8f9fb;
+}
+
+/* Header */
+.inventory-header-card {
+  display: flex;
+  align-items: center;
+  background: #fff;
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 15px;
+  gap: 15px;
+}
+
+.inventory-title {
+  font-size: 20px;
+  font-weight: 500;
+  margin: 0;
+  flex: 1;
+  text-align: left;
+}
+
+.inventory-search {
+  display: flex;
+  align-items: center;
+  border: 1px solid #ddd;
+  background: #f9f9f9;
+  padding: 5px 10px;
+  border-radius: 8px;
+  flex: 1;
+}
+
+.search-icon {
+  color: #666;
+  margin-right: 8px;
+}
+
+.inventory-search input {
+  border: none;
+  outline: none;
+  flex: 1;
+  background: transparent;
+}
+
+.add-btn,
+.upload-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.add-btn {
+  background: #007bff;
+  color: #fff;
+}
+
+.upload-btn {
+  background: #f0f0f0;
+  color: #333;
+}
+
+/* Filters */
+.inventory-filters {
+  display: flex;
+  justify-content: flex-start;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.inventory-filters select {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+}
+
+.entries-dropdown {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* Table */
+.inventory-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.inventory-table thead {
+  background: #eee;
+}
+
+.inventory-table th,
+.inventory-table td {
+  padding: 10px;
+  text-align: left;
+  /* border-bottom: 1px solid #ddd; */
+}
+
+.product-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.name-initial {
+  background: #ddd;
+  color: #333;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+.barcode-icon {
+  margin-left: 5px;
+  color: #888;
+}
+
+.low-stock {
+  color: red;
+  font-weight: 600;
+}
+
+.rupee-icon {
+  font-size: 12px;
+}
+
+.category-pill {
+  background: #eee;
+  color: #333;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+}
+
+.edit-icon {
+  color: #007bff;
+  cursor: pointer;
+}
+
+.delete-icon {
+  color: red;
+  cursor: pointer;
+}
+
+.inventory-table tr.alt-row {
+  background: #ffecec;
+}
+
+/* Footer */
+.table-footer {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  margin-top: 10px;
+}
+
+.pagination {
+  display: flex;
+  gap: 5px;
+}
+
+.pagination button {
+  border: 1px solid #ddd;
+  padding: 5px 10px;
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.pagination .active {
+  background: #007bff;
+  color: #fff;
+  font-weight: 500;
+}
