@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
 import "../styling/AddProduct.css";
 import { FaCamera, FaBarcode, FaCloudUploadAlt } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 
 const Inventory = () => {
+  const navigate = useNavigate();
   const [product, setProduct] = useState({
     name: "",
     category: "",
@@ -13,11 +15,9 @@ const Inventory = () => {
     image: null,
   });
 
-  const [categories, setCategories] = useState([]); // store categories from API
-
-  // Fetch categories on component mount
+  const [categories, setCategories] = useState([]);
   useEffect(() => {
-    fetch("http://localhost:5000/api/categories") // ✅ adjust backend port if needed
+    fetch("http://localhost:5000/api/categories")
       .then((res) => res.json())
       .then((data) => setCategories(data))
       .catch((err) => console.error("Error fetching categories:", err));
@@ -30,6 +30,44 @@ const Inventory = () => {
 
   const handleImageChange = (e) => {
     setProduct({ ...product, image: e.target.files[0] });
+  };
+  // Add product
+  const handleSave = async () => {
+    try {
+      const formData = new FormData();
+      formData.append("name", product.name);
+      formData.append("category", product.category);
+      formData.append("purchasePrice", product.purchasePrice);
+      formData.append("sellingPrice", product.sellingPrice);
+      formData.append("quantity", product.quantity);
+      formData.append("barcode", product.barcode);
+      if (product.image) {
+        formData.append("image", product.image);
+      }
+
+      const res = await fetch("http://localhost:5000/api/products", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        navigate("/Inventory");
+
+        // reset form
+        setProduct({
+          name: "",
+          category: "",
+          purchasePrice: "",
+          sellingPrice: "",
+          quantity: "",
+          barcode: "",
+          image: null,
+        });
+      }
+    } catch (err) {
+      console.error("Error saving product:", err);
+    }
   };
 
   return (
@@ -163,7 +201,9 @@ const Inventory = () => {
       {/* Footer Buttons */}
       <div className="inventory-footer">
         <button className="cancel-btn">Cancel</button>
-        <button className="save-btn">Save Product</button>
+        <button className="save-btn" onClick={handleSave}>
+          Save Product
+        </button>
       </div>
     </div>
   );

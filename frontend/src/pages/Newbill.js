@@ -16,32 +16,46 @@ const NewBill = () => {
   const [showAddCustomer, setShowAddCustomer] = useState(false);
 
   // Product states
-  const [product, setProduct] = useState("");
+  const [products, setProducts] = useState([]);
+  const [selectedProduct, setSelectedProduct] = useState("");
   const [quantity, setQuantity] = useState("");
   const [unitPrice, setUnitPrice] = useState("");
   const today = new Date().toISOString().split("T")[0];
   const [billDate, setBillDate] = useState(today);
   const [storeName] = useState("My Store");
-  //   const [billItems, setBillItems] = useState([]);
-  // Above one is disabled for now
-  const [billItems, setBillItems] = useState([
-    { product: "Item A", quantity: 2, unitPrice: 100, total: 200 },
-    { product: "Item B", quantity: 1, unitPrice: 250, total: 250 },
-  ]);
+  const [billItems, setBillItems] = useState([]);
+
+  const [discountValue, setDiscountValue] = useState("");
+  const [discountType, setDiscountType] = useState("%");
+  const [taxValue, setTaxValue] = useState("");
+
+  useEffect(() => {
+    fetch("http://localhost:5000/api/products")
+      .then((res) => res.json())
+      .then((data) => setProducts(data))
+      .catch((err) => console.error("Error fetching products:", err));
+  }, []);
 
   // Add product to bill
   const handleAddProduct = () => {
-    if (product && quantity > 0 && unitPrice) {
+    if (selectedProduct && quantity > 0 && unitPrice) {
+      const productDetails = products.find(
+        (p) => p.id === Number(selectedProduct)
+      );
+
       setBillItems([
         ...billItems,
         {
-          product,
+          product: productDetails
+            ? productDetails.product_name
+            : selectedProduct,
           quantity,
           unitPrice,
           total: Number(quantity) * Number(unitPrice),
         },
       ]);
-      setProduct("");
+
+      setSelectedProduct("");
       setQuantity("");
       setUnitPrice("");
     }
@@ -91,13 +105,33 @@ const NewBill = () => {
       }
     }
   };
-
-  // Totals calculation
+  // Subtotal
   const subtotal = billItems.reduce((acc, item) => acc + item.total, 0);
-  const discount = 0;
-  const tax = 0;
-  const total = subtotal - discount + tax;
 
+  // Final total calculation
+  let total = subtotal;
+
+  // Apply discount
+  let discountAmount = 0;
+  if (discountValue) {
+    if (discountType === "%") {
+      discountAmount = subtotal * (Number(discountValue) / 100);
+      total = subtotal - discountAmount;
+    } else {
+      discountAmount = Number(discountValue);
+      total = subtotal - discountAmount;
+    }
+  }
+
+  // Apply tax
+  let taxAmount = 0;
+  if (taxValue) {
+    taxAmount = total * (Number(taxValue) / 100);
+    total = total + taxAmount;
+  }
+
+  // Prevent negative totals
+  if (total < 0) total = 0;
   return (
     <div className="newbill-container">
       {/* Header */}
@@ -216,12 +250,15 @@ const NewBill = () => {
               <label>Product</label>
               <select
                 className="input"
-                value={product}
-                onChange={(e) => setProduct(e.target.value)}
+                value={selectedProduct}
+                onChange={(e) => setSelectedProduct(e.target.value)}
               >
                 <option value="">Select Product</option>
-                <option>Product A</option>
-                <option>Product B</option>
+                {products.map((prod) => (
+                  <option key={prod.id} value={prod.id}>
+                    {prod.product_name}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -289,72 +326,88 @@ const NewBill = () => {
           </table>
         </div>
       )}
-      {/* Bill Extras */}{" "}
+      {/* Bill Extras */}
       <div className="section bill-extras-box">
-        {" "}
-        {/* Left Box */}{" "}
+        {/* Left Box */}
         <div className="extras-left">
-          {" "}
-          <h3 className="section-title">Bill Extras</h3>{" "}
+          <h3 className="section-title">Bill Extras</h3>
           <div className="form-group">
-            {" "}
-            <label>Discount</label>{" "}
+            <label>Discount</label>
             <div className="discount">
-              {" "}
               <input
-                type="text"
+                type="number"
                 className="input"
                 placeholder="Enter discount"
-              />{" "}
-              <select className="input">
-                {" "}
-                <option>%</option> <option>₹</option>{" "}
-              </select>{" "}
-            </div>{" "}
-          </div>{" "}
+                value={discountValue}
+                onChange={(e) => setDiscountValue(e.target.value)}
+              />
+              <select
+                className="input"
+                value={discountType}
+                onChange={(e) => setDiscountType(e.target.value)}
+              >
+                <option value="%">%</option>
+                <option value="₹">₹</option>
+              </select>
+            </div>
+          </div>
+
           <div className="form-group">
-            {" "}
-            <label>Tax</label>{" "}
+            <label>Tax</label>
             <input
-              type="text"
+              type="number"
               className="input"
               placeholder="Enter tax percentage"
-            />{" "}
-          </div>{" "}
+              value={taxValue}
+              onChange={(e) => setTaxValue(e.target.value)}
+            />
+          </div>
         </div>{" "}
-        {/* Right Box */}{" "}
+        {/* ✅ CLOSE extras-left properly */}
+        {/* Right Box */}
         <div className="extras-right">
-          {" "}
-          <h3 className="section-title">Notes</h3>{" "}
+          <h3 className="section-title">Notes</h3>
           <textarea
             className="input notes-box"
             placeholder="Add any additional notes"
             rows="6"
-          ></textarea>{" "}
-        </div>{" "}
+          ></textarea>
+        </div>
       </div>
+
       {/* Totals Card */}
       <div className="section totals-card">
         <div className="totals">
           <div className="totals-row">
             <span>Subtotal</span>
-            <span>₹{subtotal}</span>
+            <span>₹{subtotal.toFixed(2)}</span>
           </div>
-          <div className="totals-row discount-text">
-            <span>Discount</span>
-            <span>-₹{discount}</span>
-          </div>
-          <div className="totals-row">
-            <span>Tax</span>
-            <span>₹{tax}</span>
-          </div>
+
+          {discountValue && (
+            <div className="totals-row discount-text">
+              <span>
+                Discount ({discountValue}
+                {discountType})
+              </span>
+              <span>-₹{discountAmount.toFixed(2)}</span>
+            </div>
+          )}
+
+          {taxValue && (
+            <div className="totals-row">
+              <span>Tax ({taxValue}%)</span>
+              <span>₹{taxAmount.toFixed(2)}</span>
+            </div>
+          )}
+
           <hr className="divider" />
           <div className="totals-row total-amount">
             <span>Total Amount</span>
-            <span>₹{total}</span>
+            <span>₹{total.toFixed(2)}</span>
           </div>
         </div>
       </div>
+
       {/* Footer Buttons */}
       <div className="footer-buttons">
         <button onClick={handlePreview} className="preview-button">
