@@ -34,95 +34,102 @@ const BillPreview = () => {
   };
 
   return (
-    <div className="bill-preview">
-      {/* Header */}
-      <div className="bill-preview-header">
+    <div className="bill-layout">
+      {/* Left column - Go Back */}
+      <div className="bill-col col-left">
         <button onClick={handleGoBack} className="btn-back">
           Go Back
         </button>
-        <h2>Bill Preview</h2>
-        <button onClick={handleEdit} className="btn-edit">
-          Edit Bill
-        </button>
       </div>
 
-      {/* Card */}
-      <div className="bill-card">
-        {/* HEADER */}
-        <div className="bill-card-header">
-          <div className="header-top">
-            {/* Store name on left */}
-            <h1 className="store-name">{storeName}</h1>
+      {/* Center column - Heading + Card */}
+      <div className="bill-col col-center">
+        <h2 className="bill-heading">Bill Preview</h2>
 
-            {/* Bill number on right */}
-            <div className="bill-meta bill-no">
-              <strong>Bill No:</strong> {billNumber}
+        {/* Card */}
+        <div className="bill-card">
+          {/* HEADER */}
+          <div className="bill-card-header">
+            <div className="header-top">
+              <h1 className="store-name">{storeName}</h1>
+              <div className="bill-meta bill-no">
+                <strong>Bill No:</strong> {billNumber}
+              </div>
+            </div>
+
+            <div className="header-row">
+              <div className="label">Date:</div>
+              <div className="value">
+                {new Date(billDate).toLocaleDateString("en-IN", {
+                  day: "2-digit",
+                  month: "long",
+                  year: "numeric",
+                })}
+              </div>
+            </div>
+
+            <div className="header-row customer-mobile">
+              <div className="left">
+                <div className="label">Customer</div>
+                <div className="value">{customerName}</div>
+              </div>
+              <div className="right">
+                <div className="label">Mobile</div>
+                <div className="value">{customerMobile}</div>
+              </div>
             </div>
           </div>
 
-          {/* Date */}
-          <div className="header-row">
-            <div className="label">Date:</div>
-            <div className="value">
-              {new Date(billDate).toLocaleDateString("en-IN", {
-                day: "2-digit",
-                month: "long",
-                year: "numeric",
-              })}
-            </div>
+          {/* ITEMS */}
+          <table className="bill-items">
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th>Quantity</th>
+                <th>Rate</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {billItems.map((item, idx) => (
+                <tr key={idx}>
+                  <td>{item.product}</td>
+                  <td>{item.quantity}</td>
+                  <td>₹{item.unitPrice}</td>
+                  <td>₹{item.quantity * item.unitPrice}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          {/* Total */}
+          <div className="bill-total">
+            <div className="label">Total Amount:</div>
+            <div className="value">₹{totalAmount}</div>
           </div>
 
-          {/* Customer + Mobile on same row */}
-          <div className="header-row customer-mobile">
-            <div className="left">
-              <div className="label">Customer</div>
-              <div className="value">{customerName}</div>
-            </div>
-            <div className="right">
-              <div className="label">Mobile</div>
-              <div className="value">{customerMobile}</div>
-            </div>
+          {/* Footer buttons INSIDE card */}
+          <div className="bill-footer">
+            <button onClick={handleShareWhatsApp} className="btn-whatsapp">
+              Share via WhatsApp
+            </button>
+            <button onClick={handleDownloadPDF} className="btn-pdf">
+              Download PDF
+            </button>
+            <button onClick={handlePrint} className="btn-print">
+              Print
+            </button>
+            <button onClick={handleGoBack} className="footer-btn-back">
+              Go Back
+            </button>
           </div>
         </div>
-
-        {/* Items */}
-        <table className="bill-items">
-          <thead>
-            <tr>
-              <th>Product</th>
-              <th>Quantity</th>
-              <th>Rate</th>
-              <th>Total</th>
-            </tr>
-          </thead>
-          <tbody>
-            {billItems.map((item, idx) => (
-              <tr key={idx}>
-                <td>{item.product}</td>
-                <td>{item.quantity}</td>
-                <td>₹{item.unitPrice}</td>
-                <td>₹{item.quantity * item.unitPrice}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-
-        <div className="bill-total">Total Amount: ₹{totalAmount}</div>
       </div>
 
-      {/* Footer */}
-      <div className="bill-footer">
-        <button onClick={handleShareWhatsApp} className="btn-whatsapp">
-          Share viaWhatsApp
-        </button>
-        <button onClick={handleDownloadPDF} className="btn-pdf">
-          Download PDF
-        </button>
-        <button onClick={handlePrint} className="btn-print">
-          Print
-        </button>
-        <button onClick={handleGoBack} className="btn-back">
-          Go Back
+      {/* Right column - Edit */}
+      <div className="bill-col col-right">
+        <button onClick={handleEdit} className="btn-edit">
+          Edit Bill
         </button>
       </div>
     </div>

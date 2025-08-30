@@ -1,8 +1,17 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import "../styling/Subscription.css";
 import { FaCheck, FaTimes } from "react-icons/fa";
 
 const Subscription = () => {
+  const [plans, setPlans] = useState([]);
+
+  useEffect(() => {
+    fetch("http://localhost:5000/api/plans")
+      .then((res) => res.json())
+      .then((data) => setPlans(data))
+      .catch((err) => console.error("Error fetching plans:", err));
+  }, []);
+
   return (
     <div className="subscription-container">
       {/* Left Section */}
@@ -27,9 +36,9 @@ const Subscription = () => {
         <div className="plans-container">
           {/* Free Plan */}
           <div className="plan-card">
-            <h3 className="plan-name">Free</h3>
+            <h3 className="plan-name">{plans[0]?.plan_name || "Free"}</h3>
             <p className="plan-price">
-              <span className="price-amount">₹0</span>
+              <span className="price-amount">₹{plans[0]?.plan_price || "0"}</span>
               <span className="price-period">/month</span>
             </p>{" "}
             <ul>
@@ -51,9 +60,9 @@ const Subscription = () => {
 
           {/* Starter Plan */}
           <div className="plan-card">
-            <h3 className="plan-name">Starter</h3>
+            <h3 className="plan-name">{plans[1]?.plan_name || "Starter"}</h3>
             <p className="plan-price">
-              <span className="price-amount">₹99</span>
+              <span className="price-amount">₹{plans[1]?.plan_price || "99"}</span>
               <span className="price-period">/month</span>
             </p>{" "}
             <ul>
@@ -83,9 +92,9 @@ const Subscription = () => {
           <div className="plan-wrapper">
             <div className="most-popular">Most Popular</div>
             <div className="plan-card pro-card">
-              <h3 className="plan-name">Pro</h3>
+              <h3 className="plan-name">{plans[2]?.plan_name || "Pro"}</h3>
               <p className="plan-price">
-                <span className="price-amount">₹199</span>
+                <span className="price-amount">₹{plans[2]?.plan_price || "199"}</span>
                 <span className="price-period">/month</span>
               </p>{" "}
               <ul>

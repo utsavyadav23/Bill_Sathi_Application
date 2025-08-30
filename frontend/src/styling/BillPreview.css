@@ -1,28 +1,31 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap");
 
-.bill-preview {
-  font-family: Arial, sans-serif;
+.bill-layout {
+  display: grid;
+  grid-template-columns: 1fr 900px 1fr;
+  gap: 20px;
+  padding: 20px;
   background: #f5f5f5;
   min-height: 100vh;
-  padding: 20px;
-  box-sizing: border-box;
 }
 
-/* Header */
-.bill-preview-header {
+/* Columns */
+.bill-col {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   align-items: center;
-  background: #e5e7eb;
-  padding: 15px 20px;
-  border-radius: 8px;
-  margin-bottom: 20px;
+}
+.col-center {
+  align-items: flex-start;
+  width: 100%;
 }
 
-.bill-preview-header h2 {
-  font-size: 22px;
+.bill-heading {
+  font-size: 24px;
   font-weight: bold;
-  margin: 0;
+  text-align: left;
+  margin-bottom: 15px;
+  width: 100%; 
 }
 
 /* Card */
@@ -31,10 +34,10 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   border-radius: 12px;
   padding: 20px;
-  margin: auto;
-  max-width: 900px;
+  width: 100%;
 }
 
+/* Card header */
 .bill-card-header {
   display: flex;
   flex-direction: column;
@@ -52,15 +55,14 @@
   text-transform: uppercase;
   font-size: 22px;
   font-weight: bold;
-  margin: 0;
 }
 
 .bill-no {
   text-align: right;
 }
+
 .header-row {
   display: flex;
-  justify-content: flex-start;
   gap: 6px;
 }
 
@@ -68,7 +70,6 @@
   font-size: 12px;
   color: #666;
   text-transform: uppercase;
-  letter-spacing: 0.4px;
 }
 
 .header-row .value {
@@ -89,17 +90,6 @@
   flex-direction: column;
 }
 
-.bill-card .bill-meta {
-  margin-top: 8px;
-  font-size: 15px;
-  color: #444;
-}
-
-.bill-card .bill-meta strong {
-  display: inline-block;
-  min-width: 100px;
-}
-
 /* Table */
 .bill-items {
   width: 100%;
@@ -108,44 +98,57 @@
   font-size: 15px;
 }
 
+
 .bill-items th,
 .bill-items td {
-  border: 1px solid #ddd;
   padding: 12px;
+  border-left: none;
+  border-right: none;
+  border-top: 1px solid #ddd;
+  border-bottom: 1px solid #ddd;
 }
 
 .bill-items th {
   background: #f3f4f6;
   font-weight: bold;
-  text-align: left;
+  text-align: center;
 }
 
 .bill-items tr:hover {
   background: #fafafa;
 }
 
+/* Total Section */
 .bill-total {
   margin-top: 20px;
   text-align: right;
   font-size: 18px;
   font-weight: bold;
   color: #111;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
 }
 
-/* Footer buttons */
+.bill-total .label {
+  font-size: 16px;
+  color: #555;
+}
+
+.bill-total .value {
+  font-size: 20px;
+  font-weight: 700;
+  color: #000;
+}
+/* Footer buttons INSIDE card */
 .bill-footer {
-  display: flex;
-  justify-content: space-around;
-  padding: 20px;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
   gap: 12px;
-  max-width: 900px;
-  margin: auto;
+  margin-top: 20px;
 }
 
 .bill-footer button {
-  flex: 1;
-  min-width: 180px;
   padding: 12px 20px;
   border: none;
   border-radius: 6px;
@@ -155,29 +158,44 @@
   transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
+.footer-btn-back {
+  background: #bbb7b7;
+  color: #333;
+}
+
 .bill-footer button:hover {
   opacity: 0.9;
   transform: translateY(-2px);
 }
 
-.bill-footer .btn-whatsapp {
+.btn-whatsapp {
   background: #25d366;
 }
 
-.bill-footer .btn-pdf {
+.btn-pdf {
   background: #007bff;
-  color: #fff;
 }
 
-.bill-footer .btn-print {
+.btn-print {
   background: #6b7280;
 }
 
-.bill-footer .btn-back {
-  background: #bbb7b7;
-  color: #6b7280;
+.btn-back,
+.btn-edit {
+  padding: 8px 16px;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
 }
 
-.bill-preview .btn-edit {
-  color: blue;
+.btn-back:hover {
+  background: #f8f8f8;
+}
+
+.btn-edit {
+  color: #007bff;
+  background: #fff;
 }

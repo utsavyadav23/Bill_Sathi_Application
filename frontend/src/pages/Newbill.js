@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "../styling/NewBill.css";
 import { FaPlus, FaTrash, FaEdit } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const NewBill = () => {
   const navigate = useNavigate();
@@ -9,7 +10,7 @@ const NewBill = () => {
   const [manualSection, setManualSection] = useState(true);
 
   // Customer states
-  const [customers, setCustomers] = useState(["Customer 1", "Customer 2"]);
+  const [customers, setCustomers] = useState([]);
   const [customerName, setCustomerName] = useState("");
   const [customerMobile, setCustomerMobile] = useState("");
   const [showAddCustomer, setShowAddCustomer] = useState(false);
@@ -18,7 +19,8 @@ const NewBill = () => {
   const [product, setProduct] = useState("");
   const [quantity, setQuantity] = useState("");
   const [unitPrice, setUnitPrice] = useState("");
-  const [billDate] = useState("2025-08-22");
+  const today = new Date().toISOString().split("T")[0];
+  const [billDate, setBillDate] = useState(today);
   const [storeName] = useState("My Store");
   //   const [billItems, setBillItems] = useState([]);
   // Above one is disabled for now
@@ -62,11 +64,31 @@ const NewBill = () => {
     setBillItems(billItems.filter((_, i) => i !== index));
   };
 
-  // Add new customer save
-  const handleSaveCustomer = () => {
+  useEffect(() => {
+    axios
+      .get("http://localhost:5000/api/customers")
+      .then((res) => setCustomers(res.data))
+      .catch((err) => console.error(err));
+  }, []);
+
+  // Save new customer
+  const handleSaveCustomer = async () => {
     if (customerName && customerMobile) {
-      setCustomers([...customers, customerName]);
-      setShowAddCustomer(false);
+      try {
+        await axios.post("http://localhost:5000/api/customers/add", {
+          name: customerName,
+          mobile: customerMobile,
+        });
+
+        const res = await axios.get("http://localhost:5000/api/customers");
+        setCustomers(res.data);
+
+        setCustomerName("");
+        setCustomerMobile("");
+        setShowAddCustomer(false);
+      } catch (error) {
+        console.error(error);
+      }
     }
   };
 
@@ -83,7 +105,6 @@ const NewBill = () => {
         <span className="breadcrumb">Dashboard &gt; New Bill</span>
         <h2 className="title">Create New Bill</h2>
       </div>
-
       {/* Customer Information */}
       <div className="section">
         <h3 className="section-title">Customer Information</h3>
@@ -96,8 +117,10 @@ const NewBill = () => {
               onChange={(e) => setCustomerName(e.target.value)}
             >
               <option value="">Select Existing Customer</option>
-              {customers.map((cust, i) => (
-                <option key={i}>{cust}</option>
+              {customers.map((cust) => (
+                <option key={cust.id} value={cust.customer_name}>
+                  {cust.customer_name}
+                </option>
               ))}
             </select>
             <span
@@ -111,7 +134,12 @@ const NewBill = () => {
           <div className="date-bill">
             <div className="form-group">
               <label>Bill Date</label>
-              <input type="date" className="input" defaultValue={billDate} />
+              <input
+                type="date"
+                className="input"
+                value={billDate}
+                onChange={(e) => setBillDate(e.target.value)}
+              />
             </div>
 
             <div className="form-group">
@@ -126,7 +154,6 @@ const NewBill = () => {
           </div>
         </div>
       </div>
-
       {/* Modal for Add Customer */}
       {showAddCustomer && (
         <div className="modal-overlay">
@@ -166,7 +193,6 @@ const NewBill = () => {
           </div>
         </div>
       )}
-
       {/* Product Section */}
       <div className="section">
         <div className="toggle-buttons">
@@ -229,7 +255,6 @@ const NewBill = () => {
           </div>
         )}
       </div>
-
       {/* Bill Items */}
       {billItems.length > 0 && (
         <div className="section">
@@ -264,7 +289,50 @@ const NewBill = () => {
           </table>
         </div>
       )}
-
+      {/* Bill Extras */}{" "}
+      <div className="section bill-extras-box">
+        {" "}
+        {/* Left Box */}{" "}
+        <div className="extras-left">
+          {" "}
+          <h3 className="section-title">Bill Extras</h3>{" "}
+          <div className="form-group">
+            {" "}
+            <label>Discount</label>{" "}
+            <div className="discount">
+              {" "}
+              <input
+                type="text"
+                className="input"
+                placeholder="Enter discount"
+              />{" "}
+              <select className="input">
+                {" "}
+                <option>%</option> <option>₹</option>{" "}
+              </select>{" "}
+            </div>{" "}
+          </div>{" "}
+          <div className="form-group">
+            {" "}
+            <label>Tax</label>{" "}
+            <input
+              type="text"
+              className="input"
+              placeholder="Enter tax percentage"
+            />{" "}
+          </div>{" "}
+        </div>{" "}
+        {/* Right Box */}{" "}
+        <div className="extras-right">
+          {" "}
+          <h3 className="section-title">Notes</h3>{" "}
+          <textarea
+            className="input notes-box"
+            placeholder="Add any additional notes"
+            rows="6"
+          ></textarea>{" "}
+        </div>{" "}
+      </div>
       {/* Totals Card */}
       <div className="section totals-card">
         <div className="totals">
@@ -287,7 +355,6 @@ const NewBill = () => {
           </div>
         </div>
       </div>
-
       {/* Footer Buttons */}
       <div className="footer-buttons">
         <button onClick={handlePreview} className="preview-button">

@@ -1,7 +1,6 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;900&display=swap");
 
 .reports-container {
-  font-family: "Inter", sans-serif;
   padding: 20px;
   width: 100%;
   background: #f8f9fb;
@@ -69,6 +68,14 @@
   text-align: left;
 }
 
+.reports-stat-card span {
+  font-size: 13px;
+  color: #6c757d;
+  margin: 0;
+  text-align: left;
+}
+
+
 .reports-stat-card p {
   font-size: 13px;
   color: #6c757d;
@@ -91,7 +98,7 @@
   font-weight: 500;
 }
 
-.growth span {
+ span {
   font-size: 13px;
 }
 
@@ -185,9 +192,6 @@
   color: #dc3545;
 }
 
-.growth span {
-  font-size: 13px;
-}
 
 .growth .positive {
   color: #28a745;

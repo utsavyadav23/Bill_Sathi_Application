@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "../styling/AddProduct.css";
 import { FaCamera, FaBarcode, FaCloudUploadAlt } from "react-icons/fa";
 
@@ -12,6 +12,16 @@ const Inventory = () => {
     barcode: "",
     image: null,
   });
+
+  const [categories, setCategories] = useState([]); // store categories from API
+
+  // Fetch categories on component mount
+  useEffect(() => {
+    fetch("http://localhost:5000/api/categories") // ✅ adjust backend port if needed
+      .then((res) => res.json())
+      .then((data) => setCategories(data))
+      .catch((err) => console.error("Error fetching categories:", err));
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -52,8 +62,11 @@ const Inventory = () => {
             onChange={handleInputChange}
           >
             <option value="">Select category</option>
-            <option value="electronics">Electronics</option>
-            <option value="fashion">Fashion</option>
+            {categories.map((cat) => (
+              <option key={cat.id} value={cat.id}>
+                {cat.category_name}
+              </option>
+            ))}
           </select>
 
           {/* Prices */}
@@ -146,9 +159,8 @@ const Inventory = () => {
             </div>
           </div>
         </div>
-      </div>{" "}
-      {/*  inventory-body closed */}
-      {/* Footer Buttons (Full width row) */}
+      </div>
+      {/* Footer Buttons */}
       <div className="inventory-footer">
         <button className="cancel-btn">Cancel</button>
         <button className="save-btn">Save Product</button>
