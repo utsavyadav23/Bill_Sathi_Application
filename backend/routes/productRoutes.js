@@ -1,6 +1,12 @@
 const express = require("express");
 const multer = require("multer");
-const { addProduct, getProducts } = require("../controllers/productController");
+const {
+  addProduct,
+  getProducts,
+  editProduct,
+  deleteProduct,
+  getProductById,
+} = require("../controllers/productController");
 const router = express.Router();
 
 // Setup Multer storage
@@ -9,13 +15,18 @@ const storage = multer.diskStorage({
     cb(null, "uploads/");
   },
   filename: (req, file, cb) => {
-    cb(null, Date.now() + "-" + file.originalname);
+    const safeName = file.originalname.replace(/\s+/g, "-");
+    cb(null, Date.now() + "-" + safeName);
   },
 });
+
 const upload = multer({ storage: storage });
 
 // Route
 router.post("/", upload.single("image"), addProduct);
 router.get("/", getProducts);
+router.put("/:id", upload.single("image"), editProduct);
+router.delete("/:id", deleteProduct);
+router.get("/:id", getProductById);
 
 module.exports = router;

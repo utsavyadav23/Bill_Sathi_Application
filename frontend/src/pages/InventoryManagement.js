@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios";
 import {
   FaSearch,
   FaPlus,
@@ -12,37 +13,80 @@ import "../styling/InventoryManagement.css";
 import { useNavigate, useLocation } from "react-router-dom";
 
 const InventoryManagement = () => {
-  const location = useLocation();
   const [products, setProducts] = useState([]);
-  const navigate = useNavigate();
   const [categories, setCategories] = useState([]);
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  // Fetch products 
+  // filters & pagination
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [sortBy, setSortBy] = useState("");
+  const [entriesLimit, setEntriesLimit] = useState(10);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Fetch products
   useEffect(() => {
-    fetch("http://localhost:5000/api/products")
-      .then((res) => {
-        if (!res.ok) throw new Error("Network error");
-        return res.json();
-      })
-      .then((data) => {
-        setProducts(Array.isArray(data) ? data : []);
-      })
-      .catch((err) => {
-        console.error("Fetch error:", err);
-        setProducts([]);
-      });
+    const fetchData = async () => {
+      try {
+        const productRes = await axios.get(
+          "http://localhost:5000/api/products"
+        );
+        setProducts(productRes.data);
 
-    if (location.state?.added) {
-      console.log("Product was just added!");
+        const categoryRes = await axios.get(
+          "http://localhost:5000/api/categories"
+        );
+        setCategories(categoryRes.data);
+      } catch (error) {
+        console.error("Error fetching data", error);
+      }
+    };
+    fetchData();
+  }, []);
+  // filter + sort
+  const filteredProducts = products
+    .filter((p) =>
+      p.product_name.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+    .filter((p) => (selectedCategory ? p.category === selectedCategory : true))
+    .sort((a, b) => {
+      if (sortBy === "name")
+        return a.product_name.localeCompare(b.product_name);
+      if (sortBy === "stock") return a.stock - b.stock;
+      if (sortBy === "price") return a.selling_price - b.selling_price;
+      return 0;
+    });
+
+  // pagination logic
+  const totalPages = Math.ceil(filteredProducts.length / entriesLimit);
+  const paginatedProducts = filteredProducts.slice(
+    (currentPage - 1) * entriesLimit,
+    currentPage * entriesLimit
+  );
+
+  const handlePageChange = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
     }
-  }, [location]);
+  };
 
-    useEffect(() => {
-      fetch("http://localhost:5000/api/categories")
-        .then((res) => res.json())
-        .then((data) => setCategories(data))
-        .catch((err) => console.error("Error fetching categories:", err));
-    }, []);
+  const handleEdit = (id) => {
+    navigate(`/EditProduct/${id}`);
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this product?"))
+      return;
+    try {
+      await fetch(`http://localhost:5000/api/products/${id}`, {
+        method: "DELETE",
+      });
+      setProducts((prev) => prev.filter((p) => p.id !== id));
+    } catch (err) {
+      console.error("Delete failed:", err);
+    }
+  };
 
   return (
     <div className="inventory-container">
@@ -52,7 +96,12 @@ const InventoryManagement = () => {
 
         <div className="inventory-search">
           <FaSearch className="search-icon" />
-          <input type="text" placeholder="Search Products..." />
+          <input
+            type="text"
+            placeholder="Search Products..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
         </div>
 
         <button className="add-btn" onClick={() => navigate("/AddProduct")}>
@@ -66,29 +115,38 @@ const InventoryManagement = () => {
 
       {/* Filters Row */}
       <div className="inventory-filters">
-        <select>
-          <option>Category</option>
+        <select
+          value={selectedCategory}
+          onChange={(e) => setSelectedCategory(e.target.value)}
+        >
+          <option value="">Category</option>
           {categories.map((cat) => (
-              <option key={cat.id} value={cat.id}>
-                {cat.category_name}
-              </option>
-            ))}
+            <option key={cat.id} value={cat.category_name}>
+              {cat.category_name}
+            </option>
+          ))}
         </select>
 
-        <select>
-          <option>Sort by</option>
-          <option>Name</option>
-          <option>Stock</option>
-          <option>Price</option>
+        <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+          <option value="">Sort by</option>
+          <option value="name">Name</option>
+          <option value="stock">Stock</option>
+          <option value="price">Price</option>
         </select>
 
         <div className="entries-dropdown">
           Show
-          <select>
-            <option>10</option>
-            <option>20</option>
-            <option>50</option>
-            <option>100</option>
+          <select
+            value={entriesLimit}
+            onChange={(e) => {
+              setEntriesLimit(Number(e.target.value));
+              setCurrentPage(1);
+            }}
+          >
+            <option value={10}>10</option>
+            <option value={20}>20</option>
+            <option value={50}>50</option>
+            <option value={100}>100</option>
           </select>
           entries
         </div>
@@ -107,11 +165,10 @@ const InventoryManagement = () => {
             <th>Actions</th>
           </tr>
         </thead>
-
         <tbody>
-          {Array.isArray(products) && products.length > 0 ? (
-            products.map((item, index) => (
-              <tr key={index} className={index % 2 === 1 ? "alt-row" : ""}>
+          {paginatedProducts.length > 0 ? (
+            paginatedProducts.map((item, index) => (
+              <tr key={item.id} className={index % 2 === 1 ? "alt-row" : ""}>
                 <td className="product-name">
                   <span className="name-initial">
                     {item.product_name?.charAt(0)}
@@ -134,8 +191,14 @@ const InventoryManagement = () => {
                   <span className="category-pill">{item.category}</span>
                 </td>
                 <td className="actions">
-                  <FaEdit className="edit-icon" />
-                  <FaTrash className="delete-icon" />
+                  <FaEdit
+                    className="edit-icon"
+                    onClick={() => handleEdit(item.id)}
+                  />
+                  <FaTrash
+                    className="delete-icon"
+                    onClick={() => handleDelete(item.id)}
+                  />
                 </td>
               </tr>
             ))
@@ -150,12 +213,33 @@ const InventoryManagement = () => {
       {/* Footer */}
       <div className="table-footer">
         <span>
-          Showing 1 to {products.length} of {products.length} entries
+          Showing {(currentPage - 1) * entriesLimit + 1} to{" "}
+          {(currentPage - 1) * entriesLimit + paginatedProducts.length} of{" "}
+          {filteredProducts.length} entries{" "}
         </span>
         <div className="pagination">
-          <button>&lt;</button>
-          <button className="active">1</button>
-          <button> &gt;</button>
+          <button
+            disabled={currentPage === 1}
+            onClick={() => handlePageChange(currentPage - 1)}
+          >
+            &lt;
+          </button>
+          {[...Array(totalPages)].map((_, i) => (
+            <button
+              key={i + 1}
+              className={currentPage === i + 1 ? "active" : ""}
+              onClick={() => handlePageChange(i + 1)}
+            >
+              {i + 1}
+            </button>
+          ))}
+
+          <button
+            disabled={currentPage === totalPages}
+            onClick={() => handlePageChange(currentPage + 1)}
+          >
+            &gt;
+          </button>
         </div>
       </div>
     </div>

@@ -10,6 +10,7 @@ import Settings from "./pages/Settings";
 import BillsAndDuesPage from "./pages/BillsAndDuesPage";
 import Reports from "./pages/Reports";
 import InventoryManagement from "./pages/InventoryManagement";
+import EditProduct from "./pages/EditProduct";
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
           <Route path="/Settings" element={<Settings />} />
           <Route path="/Bills" element={<BillsAndDuesPage />} />
           <Route path="/Reports" element={<Reports />} />
+          <Route path="/EditProduct/:id" element={<EditProduct />} />
         </Routes>
       </BrowserRouter>
     </div>
