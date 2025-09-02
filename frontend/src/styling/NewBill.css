@@ -277,3 +277,32 @@
   cursor: pointer;
   border: none;
 }
+
+.payment-method {
+  margin-top: 20px;
+}
+
+.payment-options {
+  display: flex;
+  gap: 12px;
+}
+
+.payment-btn {
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 1px solid #ddd;
+  background: #f3f3f3;
+  cursor: pointer;
+  font-weight: 500;
+  transition: 0.2s;
+}
+
+.payment-btn:hover {
+  background: #e2e2e2;
+}
+
+.payment-btn.active {
+  background: #007bff;
+  color: white;
+  border-color: #007bff;
+}

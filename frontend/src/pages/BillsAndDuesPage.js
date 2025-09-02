@@ -8,9 +8,11 @@ import {
   FaFilter,
 } from "react-icons/fa";
 import "../styling/BillsAndDuesPage.css";
+import { useNavigate } from "react-router-dom";
 
 const BillsAndDuesPage = () => {
   const [activeTab, setActiveTab] = useState("all");
+  const navigate = useNavigate();
 
   const billsData = [
     {
@@ -60,7 +62,9 @@ const BillsAndDuesPage = () => {
             Manage your billing history and outstanding payments
           </p>
         </div>
-        <button className="new-bill-btn">Create New Bill</button>
+        <button className="new-bill-btn" onClick={() => navigate("/NewBill")}>
+          Create New Bill
+        </button>
       </div>
 
       {/* Filters */}
@@ -71,7 +75,7 @@ const BillsAndDuesPage = () => {
         <select className="filter-btn">
           <option>All Payment Modes</option>
           <option>Cash</option>
-          <option>Credit Card</option>
+          <option>Credit</option>
           <option>UPI</option>
         </select>
         <div className="search-box">

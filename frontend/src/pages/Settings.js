@@ -54,6 +54,7 @@ const Settings = () => {
         <label className="settings-label">Default Bill Type</label>
         <select className="settings-input">
           <option>Retail</option>
+          <option>Wholesale</option>
         </select>
 
         <label className="settings-label">Bill Prefix</label>

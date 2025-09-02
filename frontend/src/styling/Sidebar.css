@@ -107,3 +107,23 @@
 .logout-icon:hover {
   opacity: 0.75;
 }
+
+.menu-link {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  color: #333;
+  text-decoration: none;
+  transition: 0.3s;
+}
+
+.menu-link:hover {
+  background: rgba(0, 123, 255, 0.1);
+  color: #007bff;
+}
+
+.menu-link.active {
+  background: #e6f0ff;
+  color: #007bff;
+  font-weight: 600;
+}

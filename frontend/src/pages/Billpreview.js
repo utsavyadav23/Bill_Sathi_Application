@@ -120,7 +120,7 @@ const BillPreview = () => {
               Print
             </button>
             <button onClick={handleGoBack} className="footer-btn-back">
-              Go Back
+              Save
             </button>
           </div>
         </div>

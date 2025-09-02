@@ -1,5 +1,5 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import "./../styling/Sidebar.css";
 
 // Assets
@@ -39,10 +39,15 @@ const Sidebar = () => {
       <ul className="sidebar-menu">
         {menuItems.map(({ path, icon, label }) => (
           <li key={path}>
-            <Link to={path}>
+            <NavLink
+              to={path}
+              className={({ isActive }) =>
+                `menu-link ${isActive ? "active" : ""}`
+              }
+            >
               <img src={icon} alt={label} className="menu-icon" />
               {label}
-            </Link>
+            </NavLink>
           </li>
         ))}
       </ul>

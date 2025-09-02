@@ -29,6 +29,15 @@ const NewBill = () => {
   const [discountType, setDiscountType] = useState("%");
   const [taxValue, setTaxValue] = useState("");
 
+  const [paymentMethod, setPaymentMethod] = useState("CASH");
+  const [selectedCustomerId, setSelectedCustomerId] = useState("");
+
+  const [editingIndex, setEditingIndex] = useState(null);
+  const [editQuantity, setEditQuantity] = useState("");
+  const [editUnitPrice, setEditUnitPrice] = useState("");
+
+  const [notes, setNotes] = useState("");
+
   useEffect(() => {
     fetch("http://localhost:5000/api/products")
       .then((res) => res.json())
@@ -74,8 +83,13 @@ const NewBill = () => {
     });
   };
 
-  const handleDelete = (index) => {
-    setBillItems(billItems.filter((_, i) => i !== index));
+  const handleDelete = async (index, itemId) => {
+    try {
+      await axios.delete(`http://localhost:5000/api/bill-items/${itemId}`);
+      setBillItems(billItems.filter((_, i) => i !== index));
+    } catch (error) {
+      console.error("Error deleting item:", error);
+    }
   };
 
   useEffect(() => {
@@ -85,7 +99,6 @@ const NewBill = () => {
       .catch((err) => console.error(err));
   }, []);
 
-  // Save new customer
   const handleSaveCustomer = async () => {
     if (customerName && customerMobile) {
       try {
@@ -97,6 +110,10 @@ const NewBill = () => {
         const res = await axios.get("http://localhost:5000/api/customers");
         setCustomers(res.data);
 
+        if (res.data.length > 0) {
+          setSelectedCustomerId(res.data[0].id);
+        }
+
         setCustomerName("");
         setCustomerMobile("");
         setShowAddCustomer(false);
@@ -105,6 +122,7 @@ const NewBill = () => {
       }
     }
   };
+
   // Subtotal
   const subtotal = billItems.reduce((acc, item) => acc + item.total, 0);
 
@@ -129,9 +147,117 @@ const NewBill = () => {
     taxAmount = total * (Number(taxValue) / 100);
     total = total + taxAmount;
   }
-
   // Prevent negative totals
   if (total < 0) total = 0;
+
+  const handleEdit = (index, item) => {
+    setEditingIndex(index);
+    setEditQuantity(item.quantity);
+    setEditUnitPrice(item.unitPrice);
+  };
+
+  const handleSaveEdit = async (index, item) => {
+    try {
+      await axios.put(`http://localhost:5000/api/bill-items/${item.id}`, {
+        quantity: editQuantity,
+        unitPrice: editUnitPrice,
+      });
+
+      const updatedItem = {
+        ...item,
+        quantity: editQuantity,
+        unitPrice: editUnitPrice,
+        total: editQuantity * editUnitPrice,
+      };
+
+      const updatedBillItems = [...billItems];
+      updatedBillItems[index] = updatedItem;
+      setBillItems(updatedBillItems);
+
+      setEditingIndex(null);
+    } catch (error) {
+      console.error("Error updating item:", error);
+    }
+  };
+
+  const handleAddBillItem = async () => {
+    if (selectedProduct && quantity > 0 && unitPrice) {
+      try {
+        const response = await axios.post(
+          "http://localhost:5000/api/bill-items/",
+          {
+            customer_id: selectedCustomerId,
+            product_id: selectedProduct,
+            quantity,
+            unit_price: unitPrice,
+          }
+        );
+
+        const productDetails = products.find(
+          (p) => p.id === Number(selectedProduct)
+        );
+
+        setBillItems([
+          ...billItems,
+          {
+            id: response.data.id, // new DB id
+            product: productDetails
+              ? productDetails.product_name
+              : selectedProduct,
+            quantity,
+            unitPrice,
+            total: response.data.total,
+          },
+        ]);
+
+        // reset fields
+        setSelectedProduct("");
+        setQuantity("");
+        setUnitPrice("");
+      } catch (error) {
+        console.error("Error adding bill item:", error);
+      }
+    }
+  };
+
+  // Save bill
+  const handleSaveBill = async () => {
+    try {
+      const response = await axios.post("http://localhost:5000/api/bills", {
+        customer_id: selectedCustomerId,
+        total: subtotal,
+        discount: discountAmount,
+        tax: taxAmount,
+        grand_total: total,
+        status: paymentMethod === "CASH" ? "paid" : "due",
+        payment_method: paymentMethod,
+        notes: notes,
+      });
+
+      if (response.data.success) {
+        alert("Bill saved successfully!");
+        // Optional: clear form after save
+        // handleCancel();
+      }
+    } catch (error) {
+      console.error("Error saving bill:", error);
+      alert("Failed to save bill");
+    }
+  };
+
+  // Cancel bill (reset everything)
+  const handleCancel = () => {
+    setSelectedCustomerId("");
+    setCustomerName("");
+    setCustomerMobile("");
+    setBillItems([]);
+    setDiscountValue("");
+    setDiscountType("%");
+    setTaxValue("");
+    setPaymentMethod("CASH");
+    setNotes("");
+  };
+
   return (
     <div className="newbill-container">
       {/* Header */}
@@ -147,16 +273,17 @@ const NewBill = () => {
             <label>Select Existing Customer</label>
             <select
               className="input"
-              value={customerName}
-              onChange={(e) => setCustomerName(e.target.value)}
+              value={selectedCustomerId}
+              onChange={(e) => setSelectedCustomerId(e.target.value)}
             >
               <option value="">Select Existing Customer</option>
               {customers.map((cust) => (
-                <option key={cust.id} value={cust.customer_name}>
+                <option key={cust.id} value={cust.id}>
                   {cust.customer_name}
                 </option>
               ))}
             </select>
+
             <span
               className="add-new-customer"
               onClick={() => setShowAddCustomer(true)}
@@ -251,7 +378,15 @@ const NewBill = () => {
               <select
                 className="input"
                 value={selectedProduct}
-                onChange={(e) => setSelectedProduct(e.target.value)}
+                onChange={(e) => {
+                  const prodId = e.target.value;
+                  setSelectedProduct(prodId);
+
+                  const prod = products.find((p) => p.id === Number(prodId));
+                  if (prod) {
+                    setUnitPrice(prod.selling_price);
+                  }
+                }}
               >
                 <option value="">Select Product</option>
                 {products.map((prod) => (
@@ -285,7 +420,7 @@ const NewBill = () => {
             </div>
 
             <div className="form-group full-width">
-              <button className="btn" onClick={handleAddProduct}>
+              <button className="btn" onClick={handleAddBillItem}>
                 Add Product to Bill
               </button>
             </div>
@@ -310,15 +445,59 @@ const NewBill = () => {
               {billItems.map((item, index) => (
                 <tr key={index}>
                   <td>{item.product}</td>
-                  <td>{item.quantity}</td>
-                  <td>{item.unitPrice}</td>
-                  <td>{item.total}</td>
+                  <td>
+                    {editingIndex === index ? (
+                      <input
+                        type="number"
+                        value={editQuantity}
+                        onChange={(e) =>
+                          setEditQuantity(Number(e.target.value))
+                        }
+                      />
+                    ) : (
+                      item.quantity
+                    )}
+                  </td>
+                  <td>
+                    {editingIndex === index ? (
+                      <input
+                        type="number"
+                        value={editUnitPrice}
+                        onChange={(e) =>
+                          setEditUnitPrice(Number(e.target.value))
+                        }
+                      />
+                    ) : (
+                      item.unitPrice
+                    )}
+                  </td>
+                  <td>
+                    {editingIndex === index
+                      ? editQuantity * editUnitPrice
+                      : item.total}
+                  </td>
                   <td className="action-icons">
-                    <FaEdit className="edit-icon" />
-                    <FaTrash
-                      className="delete-icon"
-                      onClick={() => handleDelete(index)}
-                    />
+                    {editingIndex === index ? (
+                      <>
+                        <button onClick={() => handleSaveEdit(index, item)}>
+                          Save
+                        </button>
+                        <button onClick={() => setEditingIndex(null)}>
+                          Cancel
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <FaEdit
+                          className="edit-icon"
+                          onClick={() => handleEdit(index, item)}
+                        />
+                        <FaTrash
+                          className="delete-icon"
+                          onClick={() => handleDelete(index, item.id)}
+                        />
+                      </>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -363,7 +542,6 @@ const NewBill = () => {
             />
           </div>
         </div>{" "}
-        {/* ✅ CLOSE extras-left properly */}
         {/* Right Box */}
         <div className="extras-right">
           <h3 className="section-title">Notes</h3>
@@ -371,6 +549,8 @@ const NewBill = () => {
             className="input notes-box"
             placeholder="Add any additional notes"
             rows="6"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
           ></textarea>
         </div>
       </div>
@@ -408,14 +588,36 @@ const NewBill = () => {
         </div>
       </div>
 
+      {/* Payment Method */}
+      <div className="section payment-method">
+        <h3 className="section-title">Payment Method</h3>
+        <div className="payment-options">
+          {["UPI", "CASH", "CREDIT"].map((method) => (
+            <button
+              key={method}
+              className={`payment-btn ${
+                paymentMethod === method ? "active" : ""
+              }`}
+              onClick={() => setPaymentMethod(method)}
+            >
+              {method}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Footer Buttons */}
       <div className="footer-buttons">
         <button onClick={handlePreview} className="preview-button">
           Preview Bill
         </button>
         <button className="send-button">Send via WhatsApp</button>
-        <button>Save as Draft</button>
-        <button>Cancel</button>
+        <button onClick={handleSaveBill} className="save-button">
+          Save
+        </button>
+        <button onClick={handleCancel} className="cancel-button">
+          Cancel
+        </button>
       </div>
     </div>
   );

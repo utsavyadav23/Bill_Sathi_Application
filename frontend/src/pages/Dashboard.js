@@ -55,9 +55,9 @@ export default function Dashboard() {
 
   const actions = [
     { title: "New Bill", icon: addNewIcon, path: "/NewBill" },
-    { title: "Scan Product", icon: ScanIcon, path: "/" },
+    { title: "Scan Product", icon: ScanIcon, path: "/AddProduct" },
     { title: "View Dues", icon: MoneyIcon, path: "/Bills" },
-    { title: "Add Inventory", icon: CartIcon, path: "/AddProduct" },
+    { title: "Add Inventory", icon: CartIcon, path: "/Inventory" },
   ];
 
   const activities = [
