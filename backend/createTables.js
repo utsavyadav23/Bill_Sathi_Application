@@ -25,15 +25,15 @@ const productsTable = `
 
 const billsTable = `
   CREATE TABLE IF NOT EXISTS bills (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+    bill_number INT AUTO_INCREMENT PRIMARY KEY,
     customer_id INT,
     total DECIMAL(10,2) NOT NULL,
     discount DECIMAL(10,2) DEFAULT 0,
     tax DECIMAL(10,2) DEFAULT 0,
     grand_total DECIMAL(10,2) NOT NULL,
-    payment_method ENUM('CASH','UPI','CREDIT',) DEFAULT 'CASH',
+    payment_method ENUM('CASH','UPI','CREDIT') DEFAULT 'CASH',
     status ENUM('paid', 'due') DEFAULT 'due',
-    notes VARCHAR(255) NOT NULL,
+    notes VARCHAR(255) NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (customer_id) REFERENCES customers(id)
   )
@@ -71,17 +71,6 @@ const categoriesTable = `
     id INT AUTO_INCREMENT PRIMARY KEY,
     category_name VARCHAR(100) UNIQUE NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-  )
-`;
-
-const paymentsTable = `
-  CREATE TABLE IF NOT EXISTS payments (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    bill_id INT,
-    amount DECIMAL(10,2) NOT NULL,
-    payment_mode ENUM('cash','card','upi','wallet') DEFAULT 'cash',
-    payment_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (bill_id) REFERENCES bills(id)
   )
 `;
 
@@ -125,6 +114,15 @@ const subscriptionsTable = `
   )
 `;
 
+const billPdfsTable = `
+CREATE TABLE IF NOT EXISTS  bill_pdfs (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  bill_id INT NOT NULL,
+  file_path VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (bill_id) REFERENCES bills(id) ON DELETE CASCADE
+)`;
+
 async function createTables() {
   try {
     await db.query(customersTable);
@@ -154,11 +152,11 @@ async function createTables() {
     await db.query(reportsTable);
     console.log("Reports table ready.");
 
-    await db.query(plansTable);
-    console.log("Plans table ready.");
-
     await db.query(subscriptionsTable);
     console.log("Subscriptions table ready.");
+
+    await db.query(billPdfsTable);
+    console.log("Bill PDFs table ready.");
 
     console.log("All tables created successfully!");
     process.exit(0);

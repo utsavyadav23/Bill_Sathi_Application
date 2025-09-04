@@ -6,7 +6,7 @@ import axios from "axios";
 
 const NewBill = () => {
   const navigate = useNavigate();
-  const [billNumber] = useState("BILL-1001");
+  const [billNumber, setBillNumber] = useState("");
   const [manualSection, setManualSection] = useState(true);
 
   // Customer states
@@ -45,40 +45,43 @@ const NewBill = () => {
       .catch((err) => console.error("Error fetching products:", err));
   }, []);
 
-  // Add product to bill
-  const handleAddProduct = () => {
-    if (selectedProduct && quantity > 0 && unitPrice) {
-      const productDetails = products.find(
-        (p) => p.id === Number(selectedProduct)
-      );
-
-      setBillItems([
-        ...billItems,
-        {
-          product: productDetails
-            ? productDetails.product_name
-            : selectedProduct,
-          quantity,
-          unitPrice,
-          total: Number(quantity) * Number(unitPrice),
-        },
-      ]);
-
-      setSelectedProduct("");
-      setQuantity("");
-      setUnitPrice("");
-    }
-  };
+  useEffect(() => {
+    axios
+      .get("http://localhost:5000/api/bills/next-number")
+      .then((res) => setBillNumber(res.data.billNumber))
+      .catch((err) => console.error(err));
+  }, []);
 
   const handlePreview = () => {
+    let previewCustomerName = customerName;
+    let previewCustomerMobile = customerMobile;
+    if (selectedCustomerId) {
+      const selectedCustomer = customers.find(
+        (c) => c.id === Number(selectedCustomerId)
+      );
+      if (selectedCustomer) {
+        previewCustomerName = selectedCustomer.customer_name;
+        previewCustomerMobile = selectedCustomer.customer_mobile_number;
+      }
+    }
     navigate("/BillPreview", {
       state: {
         billNumber,
         billDate,
-        customerName,
-        customerMobile,
+        customerId: selectedCustomerId,   
+        customerName: previewCustomerName,
+        customerMobile: previewCustomerMobile,
         storeName,
         billItems,
+        subtotal,
+        discountValue,
+        discountType,
+        discountAmount,
+        taxValue,
+        taxAmount,
+        total,
+        paymentMethod,
+        notes,
       },
     });
   };
@@ -200,7 +203,7 @@ const NewBill = () => {
         setBillItems([
           ...billItems,
           {
-            id: response.data.id, // new DB id
+            id: response.data.id, 
             product: productDetails
               ? productDetails.product_name
               : selectedProduct,
@@ -229,15 +232,44 @@ const NewBill = () => {
         discount: discountAmount,
         tax: taxAmount,
         grand_total: total,
-        status: paymentMethod === "CASH" ? "paid" : "due",
+        status: paymentMethod === "CREDIT" ? "due" : "paid",
         payment_method: paymentMethod,
         notes: notes,
       });
 
       if (response.data.success) {
-        alert("Bill saved successfully!");
-        // Optional: clear form after save
-        // handleCancel();
+        let previewCustomerName = customerName;
+        let previewCustomerMobile = customerMobile;
+
+        if (selectedCustomerId) {
+          const selectedCustomer = customers.find(
+            (c) => c.id === Number(selectedCustomerId)
+          );
+          if (selectedCustomer) {
+            previewCustomerName = selectedCustomer.customer_name;
+            previewCustomerMobile = selectedCustomer.customer_mobile_number;
+          }
+        }
+
+        navigate("/BillPreview", {
+          state: {
+            id: response.data.id,
+            billNumber: response.data.billNumber,
+            billDate,
+            customerName: previewCustomerName,
+            customerMobile: previewCustomerMobile,
+            storeName,
+            billItems,
+            subtotal,
+            discountValue,
+            discountType,
+            discountAmount,
+            taxValue,
+            taxAmount,
+            total,
+            paymentMethod,
+          },
+        });
       }
     } catch (error) {
       console.error("Error saving bill:", error);
@@ -245,7 +277,7 @@ const NewBill = () => {
     }
   };
 
-  // Cancel bill (reset everything)
+  // Cancel bill
   const handleCancel = () => {
     setSelectedCustomerId("");
     setCustomerName("");
@@ -611,7 +643,7 @@ const NewBill = () => {
         <button onClick={handlePreview} className="preview-button">
           Preview Bill
         </button>
-        <button className="send-button">Send via WhatsApp</button>
+        {/* <button className="send-button">Send via WhatsApp</button> */}
         <button onClick={handleSaveBill} className="save-button">
           Save
         </button>

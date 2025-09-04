@@ -21,6 +21,7 @@ app.use("/api/plans", planRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/bill-items", billItemRoutes);
 app.use("/api/bills", billRoutes);
+app.use("/api/billpdfs",billRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
