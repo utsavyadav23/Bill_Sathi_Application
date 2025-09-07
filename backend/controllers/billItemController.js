@@ -46,6 +46,10 @@ const addBillItem = async (req, res) => {
       success: true,
       message: "Bill item added successfully",
       id: result.insertId,
+      customer_id,
+      product_id,
+      quantity,
+      unit_price,
       total,
     });
   } catch (err) {

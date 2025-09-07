@@ -11,6 +11,7 @@ import BillsAndDuesPage from "./pages/BillsAndDuesPage";
 import Reports from "./pages/Reports";
 import InventoryManagement from "./pages/InventoryManagement";
 import EditProduct from "./pages/EditProduct";
+import EditBill from "./pages/EditBill";
 
 function App() {
   return (
@@ -29,6 +30,7 @@ function App() {
           <Route path="/Bills" element={<BillsAndDuesPage />} />
           <Route path="/Reports" element={<Reports />} />
           <Route path="/EditProduct/:id" element={<EditProduct />} />
+          <Route path="/EditBill" element={<EditBill />} />
         </Routes>
       </BrowserRouter>
     </div>

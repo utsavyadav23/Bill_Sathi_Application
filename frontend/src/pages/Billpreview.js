@@ -27,9 +27,8 @@ const BillPreview = () => {
   );
 
   const handleGoBack = () => navigate(-1);
-  const handleEdit = () => navigate("/newbill", { state });
   const ensureBillSaved = async () => {
-    if (state.id) return state.id; 
+    if (state.id) return state.id;
 
     const payload = {
       billNumber,
@@ -43,8 +42,6 @@ const BillPreview = () => {
       notes: state.notes || null,
     };
 
-    console.log("📝 Auto-saving bill:", payload);
-
     const response = await fetch("http://localhost:5000/api/bills", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -52,7 +49,6 @@ const BillPreview = () => {
     });
 
     const result = await response.json();
-    console.log("💾 Auto-save result:", result);
 
     if (result.success) {
       state.id = result.id;
@@ -137,7 +133,7 @@ const BillPreview = () => {
 
       pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
 
-      if (footer) footer.style.display = "flex";
+      if (footer) footer.style.display = "flex"; // have to make in original state
       const pdfBlob = pdf.output("blob");
       const formData = new FormData();
       formData.append("file", pdfBlob, `${billNumber}.pdf`);
@@ -149,7 +145,6 @@ const BillPreview = () => {
       });
 
       const result = await res.json();
-      console.log("📤 WhatsApp upload result:", result);
 
       if (!result.success || (!result.filePath && !result.fileUrl)) {
         alert("Failed to upload bill PDF!");
@@ -164,7 +159,6 @@ const BillPreview = () => {
                    PDF: ${fileUrl}`;
 
       const waUrl = `https://wa.me/?text=${encodeURIComponent(msg)}`;
-      console.log("✅ Opening WhatsApp URL:", waUrl);
       window.open(waUrl, "_self");
     } catch (err) {
       console.error("WhatsApp share error:", err);
@@ -298,7 +292,30 @@ const BillPreview = () => {
 
       {/* Right column - Edit */}
       <div className="bill-col col-right">
-        <button onClick={handleEdit} className="btn-edit">
+        <button
+          className="btn-edit"
+          onClick={() => {
+            const editState = {
+              id: state.id,
+              billNumber: state.billNumber,
+              billDate: state.billDate,
+              customerId: state.customerId,
+              customerName: state.customerName,
+              customerMobile: state.customerMobile,
+              billItems: state.billItems,
+              total: state.subtotal,
+              discountValue: state.discountValue,
+              discountType: state.discountType,
+              discountAmount: state.discountAmount,
+              taxValue: state.taxValue,
+              taxAmount: state.taxAmount,
+              grand_total: state.total,
+              paymentMethod: state.paymentMethod,
+              notes: state.notes,
+            };
+            navigate("/EditBill", { state: editState });
+          }}
+        >
           Edit Bill
         </button>
       </div>

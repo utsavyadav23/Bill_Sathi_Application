@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import "../styling/NewBill.css";
 import { FaPlus, FaTrash, FaEdit } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const NewBill = () => {
   const navigate = useNavigate();
@@ -68,7 +68,7 @@ const NewBill = () => {
       state: {
         billNumber,
         billDate,
-        customerId: selectedCustomerId,   
+        customerId: Number(selectedCustomerId),
         customerName: previewCustomerName,
         customerMobile: previewCustomerMobile,
         storeName,
@@ -189,7 +189,7 @@ const NewBill = () => {
         const response = await axios.post(
           "http://localhost:5000/api/bill-items/",
           {
-            customer_id: selectedCustomerId,
+            customer_id: Number(selectedCustomerId),
             product_id: selectedProduct,
             quantity,
             unit_price: unitPrice,
@@ -203,7 +203,7 @@ const NewBill = () => {
         setBillItems([
           ...billItems,
           {
-            id: response.data.id, 
+            id: response.data.id,
             product: productDetails
               ? productDetails.product_name
               : selectedProduct,
@@ -227,7 +227,7 @@ const NewBill = () => {
   const handleSaveBill = async () => {
     try {
       const response = await axios.post("http://localhost:5000/api/bills", {
-        customer_id: selectedCustomerId,
+        customer_id: Number(selectedCustomerId),
         total: subtotal,
         discount: discountAmount,
         tax: taxAmount,
@@ -268,6 +268,8 @@ const NewBill = () => {
             taxAmount,
             total,
             paymentMethod,
+            notes,
+            customerId: Number(selectedCustomerId),
           },
         });
       }
@@ -306,7 +308,12 @@ const NewBill = () => {
             <select
               className="input"
               value={selectedCustomerId}
-              onChange={(e) => setSelectedCustomerId(e.target.value)}
+              onChange={(e) => {
+                setSelectedCustomerId(e.target.value);
+                const selectedCust = customers.find(
+                  (c) => c.id === Number(e.target.value)
+                );
+              }}
             >
               <option value="">Select Existing Customer</option>
               {customers.map((cust) => (

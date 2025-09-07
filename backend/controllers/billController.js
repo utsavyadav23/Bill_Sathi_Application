@@ -71,4 +71,39 @@ const nextNumber = async (req, res) => {
   }
 };
 
-module.exports = { saveBill, uploadPDF, nextNumber };
+const updateBill = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      customer_id,
+      total,
+      discount,
+      tax,
+      grand_total,
+      status,
+      payment_method,
+      notes,
+    } = req.body;
+
+    await db.query(
+      "UPDATE bills SET customer_id=?, total=?, discount=?, tax=?, grand_total=?, status=?, payment_method=?, notes=? WHERE bill_number=?",
+      [
+        customer_id,
+        total,
+        discount,
+        tax,
+        grand_total,
+        status,
+        payment_method,
+        notes,
+        id,
+      ]
+    );
+    res.json({ success: true, message: "Bill updated successfully" });
+  } catch (err) {
+    console.error(" Error updating bill:", err);
+    res.status(500).json({ success: false, error: "Failed to update bill" });
+  }
+};
+
+module.exports = { saveBill, uploadPDF, nextNumber, updateBill };
