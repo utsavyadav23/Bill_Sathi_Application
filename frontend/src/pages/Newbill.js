@@ -232,7 +232,7 @@ const NewBill = () => {
         discount: discountAmount,
         tax: taxAmount,
         grand_total: total,
-        status: paymentMethod === "CREDIT" ? "due" : "paid",
+        status: paymentMethod === "CREDIT" ? "Due" : "Paid",
         payment_method: paymentMethod,
         notes: notes,
       });

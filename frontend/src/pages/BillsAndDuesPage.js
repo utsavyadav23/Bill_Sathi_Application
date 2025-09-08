@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   FaCalendarAlt,
   FaSearch,
@@ -9,48 +9,103 @@ import {
 } from "react-icons/fa";
 import "../styling/BillsAndDuesPage.css";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const BillsAndDuesPage = () => {
   const [activeTab, setActiveTab] = useState("all");
+  const [billsData, setBillsData] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState("");
+  const [entriesLimit, setEntriesLimit] = useState(10);
+  const [currentPage, setCurrentPage] = useState(1);
   const navigate = useNavigate();
 
-  const billsData = [
-    {
-      date: "15/02/2025",
-      customer: "John Anderson",
-      amount: "₹1250.00",
-      status: "Paid",
-      showTick: true,
-    },
-    {
-      date: "12/12/2024",
-      customer: "Sarah Williams",
-      amount: "₹1850.00",
-      status: "Due",
-      showTick: false,
-    },
-    {
-      date: "05/11/2024",
-      customer: "Michael Brown",
-      amount: "₹920.00",
-      status: "Paid",
-      showTick: true,
-    },
-    {
-      date: "01/11/2024",
-      customer: "Emily Davis",
-      amount: "₹2100.00",
-      status: "Due",
-      showTick: false,
-    },
-    {
-      date: "20/10/2024",
-      customer: "David Wilson",
-      amount: "₹750.00",
-      status: "Paid",
-      showTick: false,
-    },
-  ];
+  useEffect(() => {
+    axios
+      .get("http://localhost:5000/api/billsanddues")
+      .then((res) => setBillsData(res.data))
+      .catch((err) => console.error(err));
+  }, []);
+
+  // Filters
+  const filteredBills = billsData
+    .filter((bill) => {
+      const billDate = new Date(bill.created_at);
+      const today = new Date();
+      const diffDays = (today - billDate) / (1000 * 60 * 60 * 24);
+      return diffDays <= 30; 
+    })
+    .filter((bill) =>
+      paymentMethod ? bill.payment_method === paymentMethod : true
+    )
+    .filter((bill) => {
+      const searchLower = searchQuery.toLowerCase();
+      return (
+        bill.customer_name.toLowerCase().includes(searchLower) ||
+        new Date(bill.created_at)
+          .toLocaleDateString("en-GB")
+          .toLowerCase()
+          .includes(searchLower) ||
+        bill.grand_total.toString().includes(searchLower)
+      );
+    })
+    .filter((bill) =>
+      activeTab === "all" ? true : bill.status.toLowerCase() === activeTab
+    );
+
+  const totalPages = Math.ceil(filteredBills.length / entriesLimit);
+  const paginatedBills = filteredBills.slice(
+    (currentPage - 1) * entriesLimit,
+    currentPage * entriesLimit
+  );
+
+  const handlePageChange = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
+
+  const getLatestPdfUrl = async (billId) => {
+    try {
+      const res = await fetch(
+        `http://localhost:5000/api/billsanddues/${billId}/latest`
+      );
+      const result = await res.json();
+
+      if (!result.success || (!result.fileUrl && !result.filePath)) {
+        return null;
+      }
+      return result.fileUrl || `http://localhost:5000${result.filePath}`;
+    } catch (err) {
+      console.error("Error fetching PDF:", err);
+      return null;
+    }
+  };
+
+  const handleViewPdf = async (billId) => {
+    const fileUrl = await getLatestPdfUrl(billId);
+    if (fileUrl) {
+      window.open(fileUrl, "_blank");
+    } else {
+      alert("No PDF found for this bill!");
+    }
+  };
+
+  const handleSharePdf = async (bill) => {
+    const fileUrl = await getLatestPdfUrl(bill.bill_number);
+    if (!fileUrl) {
+      alert("No PDF available to share!");
+      return;
+    }
+    const fileName = fileUrl.split("/").pop().replace(".pdf", "");
+    const msg = `Bill ${fileName} 
+               Customer: ${bill.customer_name} (${bill.customer_mobile_number})
+               Total: ₹${bill.grand_total}
+               PDF: ${fileUrl}`;
+
+    const waUrl = `https://wa.me/?text=${encodeURIComponent(msg)}`;
+    window.open(waUrl, "_blank");
+  };
 
   return (
     <div className="bills-container">
@@ -72,15 +127,26 @@ const BillsAndDuesPage = () => {
         <button className="filter-btn">
           <FaCalendarAlt className="icon" /> Last 30 days
         </button>
-        <select className="filter-btn">
-          <option>All Payment Modes</option>
-          <option>Cash</option>
-          <option>Credit</option>
-          <option>UPI</option>
+        <select
+          className="filter-btn"
+          value={paymentMethod}
+          onChange={(e) => setPaymentMethod(e.target.value)}
+        >
+          <option value="">All Payment Methods</option>
+          <option value="Cash">Cash</option>
+          <option value="Credit">Credit</option>
+          <option value="UPI">UPI</option>
         </select>
+
+        {/* 3. Search */}
         <div className="search-box">
           <FaSearch className="icon" />
-          <input type="text" placeholder="Search Bills..." />
+          <input
+            type="text"
+            placeholder="Search by Name, Date, or Amount..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
         </div>
       </div>
 
@@ -100,8 +166,8 @@ const BillsAndDuesPage = () => {
             Paid Bills
           </span>
           <span
-            className={`tab ${activeTab === "dues" ? "active" : ""}`}
-            onClick={() => setActiveTab("dues")}
+            className={`tab ${activeTab === "due" ? "active" : ""}`}
+            onClick={() => setActiveTab("due")}
           >
             Dues
           </span>
@@ -114,46 +180,76 @@ const BillsAndDuesPage = () => {
               <th>Date</th>
               <th>Customer Name</th>
               <th>Total Amount</th>
-              <th>Payment</th>
+              <th>Payment Method</th>
+              <th>Status</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            {billsData.map((bill, index) => (
-              <tr key={index} className={index % 2 === 0 ? "even" : "odd"}>
-                <td>{bill.date}</td>
-                <td>{bill.customer}</td>
-                <td>{bill.amount}</td>
-                <td>
-                  <span
-                    className={`status ${
-                      bill.status === "Paid" ? "paid" : "due"
-                    }`}
-                  >
-                    {bill.status}
-                  </span>
-                </td>
-                <td className="actions">
-                  <FaEye className="action-icon" />
-                  <FaShareAlt className="action-icon" />
-                  {bill.showTick && <FaCheck className="action-icon grey" />}
-                </td>
+            {paginatedBills.length > 0 ? (
+              paginatedBills.map((bill) => (
+                <tr key={bill.id}>
+                  <td>
+                    {new Date(bill.created_at).toLocaleDateString("en-GB")}
+                  </td>
+                  <td>{bill.customer_name}</td>
+                  <td>₹{bill.grand_total}</td>
+                  <td>{bill.payment_method}</td>
+                  <td>
+                    <span className={`status ${bill.status.toLowerCase()}`}>
+                      {bill.status}
+                    </span>
+                  </td>
+                  <td className="actions">
+                    <FaEye
+                      className="action-icon"
+                      onClick={() => handleViewPdf(bill.bill_number)}
+                    />
+                    <FaShareAlt
+                      className="action-icon"
+                      onClick={() => handleSharePdf(bill)}
+                    />
+                    {bill.showTick && <FaCheck className="action-icon grey" />}
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="6">No bills found</td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
 
         {/* Footer */}
         <div className="table-footer">
-          <span className="entries-info">Showing 1 of 5 of 25 entries</span>
+          <span>
+            Showing {(currentPage - 1) * entriesLimit + 1} to{" "}
+            {(currentPage - 1) * entriesLimit + paginatedBills.length} of{" "}
+            {filteredBills.length} entries
+          </span>
           <div className="pagination">
-            <button>{"<"}</button>
-            <button className="active">1</button>
-            <button>2</button>
-            <button>3</button>
-            <button>4</button>
-            <button>5</button>
-            <button>{">"}</button>
+            <button
+              disabled={currentPage === 1}
+              onClick={() => handlePageChange(currentPage - 1)}
+            >
+              &lt;
+            </button>
+            {[...Array(totalPages)].map((_, i) => (
+              <button
+                key={i + 1}
+                className={currentPage === i + 1 ? "active" : ""}
+                onClick={() => handlePageChange(i + 1)}
+              >
+                {i + 1}
+              </button>
+            ))}
+            <button
+              disabled={currentPage === totalPages}
+              onClick={() => handlePageChange(currentPage + 1)}
+            >
+              &gt;
+            </button>
           </div>
         </div>
       </div>

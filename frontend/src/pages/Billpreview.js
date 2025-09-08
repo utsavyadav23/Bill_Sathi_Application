@@ -38,7 +38,7 @@ const BillPreview = () => {
       tax: state.taxAmount,
       grand_total: state.total,
       payment_method: state.paymentMethod,
-      status: state.paymentMethod === "CREDIT" ? "due" : "paid",
+      status: state.paymentMethod === "CREDIT" ? "Due" : "Paid",
       notes: state.notes || null,
     };
 
@@ -64,7 +64,7 @@ const BillPreview = () => {
       window.print();
     } catch (err) {
       console.error("Error in print logic:", err);
-      window.print(); // fallback
+      window.print();
     }
   };
 
@@ -153,7 +153,7 @@ const BillPreview = () => {
       const fileUrl =
         result.fileUrl || `http://localhost:5000${result.filePath}`;
 
-      const msg = `Bill ${billNumber} | ${storeName}
+      const msg = `Bill ${billNumber}
                    Customer: ${customerName} (${customerMobile})
                    Total: ₹${state.total}
                    PDF: ${fileUrl}`;

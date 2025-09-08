@@ -32,7 +32,7 @@ const billsTable = `
     tax DECIMAL(10,2) DEFAULT 0,
     grand_total DECIMAL(10,2) NOT NULL,
     payment_method ENUM('CASH','UPI','CREDIT') DEFAULT 'CASH',
-    status ENUM('paid', 'due') DEFAULT 'due',
+    status ENUM('Paid', 'Due') DEFAULT 'Due',
     notes VARCHAR(255) NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (customer_id) REFERENCES customers(id)
