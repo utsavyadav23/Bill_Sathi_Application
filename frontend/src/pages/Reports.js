@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import "../styling/Reports.css";
 import {
   FaDownload,
@@ -18,6 +18,7 @@ import {
   Pie,
   Cell,
 } from "recharts";
+import axios from "axios";
 
 const Reports = () => {
   // Data for line chart
@@ -39,6 +40,44 @@ const Reports = () => {
     { name: "Others", value: 5, color: "#6c757d" },
   ];
 
+  const formatCurrency = (amount) => {
+    if (!amount) return "₹0";
+    return `₹${parseFloat(amount).toLocaleString("en-IN", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
+  };
+
+  const [totalCustomers, setTotalCustomers] = useState(0);
+  const [monthSales, setMonthSales] = useState(0);
+
+  useEffect(() => {
+    const fetchMonthSales = async () => {
+      try {
+        const response = await axios.get(
+          "http://localhost:5000/api/bills/month-sales"
+        );
+        setMonthSales(response.data.month_sales);
+      } catch (error) {
+        console.error("Error fetching bill sums:", error);
+      }
+    };
+    fetchMonthSales();
+  }, []);
+  useEffect(() => {
+    const fetchCustomerCount = async () => {
+      try {
+        const response = await axios.get(
+          "http://localhost:5000/api/customers/count"
+        );
+        setTotalCustomers(response.data.total);
+      } catch (error) {
+        console.error("Error fetching product count:", error);
+      }
+    };
+    fetchCustomerCount();
+  }, []);
+
   return (
     <div className="reports-container">
       {/* Reports Summary Header */}
@@ -57,7 +96,7 @@ const Reports = () => {
             <span>Total Sales</span>
             <FaArrowUp className="arrow positive" />
           </div>
-          <h2>₹ 1,24,500</h2>
+          <h2>{formatCurrency(monthSales)}</h2>
           <p className="growth">
             <span className="positive">+12%</span> <span>This Month</span>
           </p>
@@ -81,7 +120,7 @@ const Reports = () => {
             <span>Total Customers</span>
             <FaArrowUp className="arrow positive" />
           </div>
-          <h2>847</h2>
+          <h2>{totalCustomers}</h2>
           <p className="growth">
             <span className="positive">+8%</span> <span>Active Customers</span>
           </p>

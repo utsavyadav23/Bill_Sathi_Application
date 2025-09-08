@@ -2,7 +2,9 @@ const db = require("../config/db");
 
 const getCustomers = async (req, res) => {
   try {
-    const [rows] = await db.query("SELECT * FROM customers ORDER BY created_at DESC");
+    const [rows] = await db.query(
+      "SELECT * FROM customers ORDER BY created_at DESC"
+    );
     res.json(rows);
   } catch (err) {
     console.error(err);
@@ -31,4 +33,14 @@ const addCustomer = async (req, res) => {
   }
 };
 
-module.exports = { getCustomers, addCustomer };
+const totalCustomers = async (req, res) => {
+  try {
+    const [rows] = await db.query("SELECT COUNT(*) AS total FROM customers");
+    res.json({ total: rows[0].total });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Database error" });
+  }
+};
+
+module.exports = { getCustomers, addCustomer, totalCustomers };

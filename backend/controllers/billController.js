@@ -109,14 +109,20 @@ const updateBill = async (req, res) => {
 const getBillSums = async (req, res) => {
   try {
     const [rows] = await db.query(`
-      SELECT 
-        SUM(grand_total) AS total_sales,
-        SUM(CASE WHEN status = 'Due' THEN grand_total ELSE 0 END) AS total_due
-      FROM bills
+      SELECT
+        -- Today's sales
+        (SELECT SUM(grand_total) 
+         FROM bills 
+         WHERE DATE(created_at) = CURDATE()) AS today_sales,
+
+        -- All-time due
+        (SELECT SUM(grand_total) 
+         FROM bills 
+         WHERE status = 'Due') AS total_due
     `);
 
     res.json({
-      total_sales: rows[0].total_sales || 0,
+      today_sales: rows[0].today_sales || 0,
       total_due: rows[0].total_due || 0,
     });
   } catch (err) {
@@ -125,4 +131,29 @@ const getBillSums = async (req, res) => {
   }
 };
 
-module.exports = { saveBill, uploadPDF, nextNumber, updateBill, getBillSums };
+const getMonthSales = async (req, res) => {
+  try {
+    const [rows] = await db.query(`
+      SELECT 
+        COALESCE(SUM(grand_total), 0) AS month_sales
+      FROM bills
+      WHERE MONTH(created_at) = MONTH(CURDATE())
+        AND YEAR(created_at) = YEAR(CURDATE())
+    `);
+
+    res.json({
+      month_sales: rows[0].month_sales || 0,
+    });
+  } catch (err) {
+    res.status(500).json({ error: "Database error" });
+  }
+};
+
+module.exports = {
+  saveBill,
+  uploadPDF,
+  nextNumber,
+  updateBill,
+  getBillSums,
+  getMonthSales,
+};

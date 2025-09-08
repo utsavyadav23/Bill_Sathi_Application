@@ -51,9 +51,21 @@ export default function Dashboard() {
     year: "numeric",
   });
 
+  const formatCurrency = (amount) => {
+    if (!amount) return "₹0";
+    return `₹${parseFloat(amount).toLocaleString("en-IN", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
+  };
+
   const stats = [
-    { title: "Today's Sale", value: `₹${totalSales}`, icon: SaleIcon },
-    { title: "Pending Dues", value: `₹${totalDue}`, icon: DuesIcon },
+    {
+      title: "Today's Sale",
+      value: formatCurrency(totalSales),
+      icon: SaleIcon,
+    },
+    { title: "Pending Dues", value: formatCurrency(totalDue), icon: DuesIcon },
     { title: "Product", value: `${productCount} Products`, icon: ProductIcon },
   ];
 
@@ -101,7 +113,7 @@ export default function Dashboard() {
         const response = await axios.get(
           "http://localhost:5000/api/bills/sums"
         );
-        setTotalSales(response.data.total_sales);
+        setTotalSales(response.data.today_sales);
         setTotalDue(response.data.total_due);
       } catch (error) {
         console.error("Error fetching bill sums:", error);
