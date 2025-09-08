@@ -106,4 +106,23 @@ const updateBill = async (req, res) => {
   }
 };
 
-module.exports = { saveBill, uploadPDF, nextNumber, updateBill };
+const getBillSums = async (req, res) => {
+  try {
+    const [rows] = await db.query(`
+      SELECT 
+        SUM(grand_total) AS total_sales,
+        SUM(CASE WHEN status = 'Due' THEN grand_total ELSE 0 END) AS total_due
+      FROM bills
+    `);
+
+    res.json({
+      total_sales: rows[0].total_sales || 0,
+      total_due: rows[0].total_due || 0,
+    });
+  } catch (err) {
+    console.error("Error fetching bill sums:", err);
+    res.status(500).json({ error: "Database error" });
+  }
+};
+
+module.exports = { saveBill, uploadPDF, nextNumber, updateBill, getBillSums };

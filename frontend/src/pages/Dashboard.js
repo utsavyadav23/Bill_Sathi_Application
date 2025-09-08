@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import "../styling/Dashboard.css";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 // Assets
 import RemainderIcon from "../assets/Remainder.svg";
@@ -38,6 +39,9 @@ const ActivityBox = ({ icon, title, time }) => (
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const [productCount, setProductCount] = useState(0);
+  const [totalSales, setTotalSales] = useState(0);
+  const [totalDue, setTotalDue] = useState(0);
 
   const today = new Date();
   const dateStr = today.toLocaleDateString("en-US", {
@@ -48,9 +52,9 @@ export default function Dashboard() {
   });
 
   const stats = [
-    { title: "Today's Sale", value: "₹12,500", icon: SaleIcon },
-    { title: "Pending Dues", value: "₹4,200", icon: DuesIcon },
-    { title: "Product", value: "18 Products", icon: ProductIcon },
+    { title: "Today's Sale", value: `₹${totalSales}`, icon: SaleIcon },
+    { title: "Pending Dues", value: `₹${totalDue}`, icon: DuesIcon },
+    { title: "Product", value: `${productCount} Products`, icon: ProductIcon },
   ];
 
   const actions = [
@@ -77,6 +81,34 @@ export default function Dashboard() {
       <span>{title}</span>
     </div>
   );
+  useEffect(() => {
+    const fetchCount = async () => {
+      try {
+        const response = await axios.get(
+          "http://localhost:5000/api/products/count"
+        );
+        setProductCount(response.data.total);
+      } catch (error) {
+        console.error("Error fetching product count:", error);
+      }
+    };
+    fetchCount();
+  }, []);
+
+  useEffect(() => {
+    const fetchBillSums = async () => {
+      try {
+        const response = await axios.get(
+          "http://localhost:5000/api/bills/sums"
+        );
+        setTotalSales(response.data.total_sales);
+        setTotalDue(response.data.total_due);
+      } catch (error) {
+        console.error("Error fetching bill sums:", error);
+      }
+    };
+    fetchBillSums();
+  }, []);
 
   return (
     <div className="dashboard-container">

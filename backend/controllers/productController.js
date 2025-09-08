@@ -170,10 +170,21 @@ const deleteProduct = async (req, res) => {
   }
 };
 
+const productCount = async (req, res) => {
+  try {
+    const [rows] = await db.query("SELECT COUNT(*) AS total FROM products");
+    res.json({ total: rows[0].total });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Database error" });
+  }
+};
+
 module.exports = {
   addProduct,
   getProducts,
   editProduct,
   deleteProduct,
   getProductById,
+  productCount,
 };

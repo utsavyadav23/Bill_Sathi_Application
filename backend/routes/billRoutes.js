@@ -6,6 +6,7 @@ const {
   uploadPDF,
   nextNumber,
   updateBill,
+  getBillSums,
 } = require("../controllers/billController");
 
 const router = express.Router();
@@ -25,6 +26,7 @@ const upload = multer({ storage: storage });
 router.post("/", saveBill);
 router.post("/upload", upload.single("file"), uploadPDF);
 router.get("/next-number", nextNumber);
+router.get("/sums", getBillSums);
 router.put("/:id", updateBill);
 
 module.exports = router;

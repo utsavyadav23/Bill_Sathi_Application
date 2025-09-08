@@ -143,8 +143,8 @@ async function createTables() {
     await db.query(categoriesTable);
     console.log("Categories table ready.");
 
-    await db.query(paymentsTable);
-    console.log("Payments table ready.");
+    await db.query(plansTable);
+    console.log("Plans table ready.");
 
     await db.query(salesTable);
     console.log("Sales table ready.");

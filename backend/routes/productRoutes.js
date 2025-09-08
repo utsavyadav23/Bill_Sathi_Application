@@ -6,6 +6,7 @@ const {
   editProduct,
   deleteProduct,
   getProductById,
+  productCount,
 } = require("../controllers/productController");
 const router = express.Router();
 
@@ -25,6 +26,7 @@ const upload = multer({ storage: storage });
 // Route
 router.post("/", upload.single("image"), addProduct);
 router.get("/", getProducts);
+router.get("/count", productCount);
 router.put("/:id", upload.single("image"), editProduct);
 router.delete("/:id", deleteProduct);
 router.get("/:id", getProductById);
