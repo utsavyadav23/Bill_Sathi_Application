@@ -11,6 +11,7 @@ import {
 } from "react-icons/fa";
 import "../styling/InventoryManagement.css";
 import { useNavigate, useLocation } from "react-router-dom";
+import * as XLSX from "xlsx";
 
 const InventoryManagement = () => {
   const [products, setProducts] = useState([]);
@@ -24,6 +25,8 @@ const InventoryManagement = () => {
   const [sortBy, setSortBy] = useState("");
   const [entriesLimit, setEntriesLimit] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
+
+  const [bulkProducts, setBulkProducts] = useState([]);
 
   // Fetch products
   useEffect(() => {
@@ -88,6 +91,53 @@ const InventoryManagement = () => {
     }
   };
 
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      const bstr = evt.target.result;
+      const workbook = XLSX.read(bstr, { type: "binary" });
+      const sheetName = workbook.SheetNames[0];
+      const sheet = workbook.Sheets[sheetName];
+      const data = XLSX.utils.sheet_to_json(sheet);
+      setBulkProducts(data);
+    };
+    reader.readAsBinaryString(file);
+  };
+
+  const handleBulkUpload = async () => {
+    if (bulkProducts.length === 0) {
+      alert("No products to upload");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("products", JSON.stringify(bulkProducts));
+    bulkProducts.forEach((p, i) => {
+      if (p.imageFile) {
+        formData.append("images", p.imageFile);
+      }
+    });
+
+    try {
+      await axios.post(
+        "http://localhost:5000/api/products/bulk-upload",
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
+      alert("Products uploaded successfully!");
+      setBulkProducts([]);
+      window.location.reload();
+    } catch (err) {
+      console.error("Bulk upload failed:", err);
+      alert("Upload failed. Check console for details.");
+    }
+  };
+
   return (
     <div className="inventory-container">
       {/* Header Row */}
@@ -108,10 +158,60 @@ const InventoryManagement = () => {
           <FaPlus /> Add Product
         </button>
 
-        <button className="upload-btn">
-          <FaUpload /> Bulk Upload
-        </button>
+        {bulkProducts.length === 0 ? (
+          <label className="upload-btn">
+            <FaUpload /> Bulk Upload
+            <input
+              type="file"
+              accept=".xlsx,.xls,.csv"
+              onChange={handleFileUpload}
+              style={{ display: "none" }}
+            />
+          </label>
+        ) : (
+          <div className="bulk-actions">
+            <button className="confirm-upload-btn" onClick={handleBulkUpload}>
+               Confirm Upload ({bulkProducts.length})
+            </button>
+            <button
+              className="cancel-upload-btn"
+              onClick={() => setBulkProducts([])}
+            >
+               Cancel
+            </button>
+          </div>
+        )}
       </div>
+
+      {bulkProducts.length > 0 && (
+        <div className="bulk-preview">
+          <h3>Preview Uploaded Products</h3>
+          <table>
+            <thead>
+              <tr>
+             <th>Product Name</th>
+          <th>Barcode</th>
+          <th>Stock</th>
+          <th>Purchase Price</th>
+          <th>Selling Price</th>
+          <th>Category</th>
+              </tr>
+            </thead>
+            <tbody>
+         {bulkProducts.map((row, i) => (
+          <tr key={i}>
+            <td>{row.product_name}</td>
+            <td>{row.barcode}</td>
+            <td>{row.stock}</td>
+            <td>{row.purchase_price}</td>
+            <td>{row.selling_price}</td>
+            <td>{row.category}</td>
+          </tr>
+        ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {/* Filters Row */}
       <div className="inventory-filters">

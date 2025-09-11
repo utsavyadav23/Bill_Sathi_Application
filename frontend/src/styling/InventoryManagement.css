@@ -190,3 +190,90 @@
   color: #fff;
   font-weight: 500;
 }
+
+/* Confirm Upload Button */
+.confirm-upload-btn {
+  background: #28a745;
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.confirm-upload-btn:hover {
+  background: #218838;
+  transform: scale(1.05);
+}
+
+.confirm-upload-btn:active {
+  background: #1e7e34;
+  transform: scale(0.97);
+}
+
+/* Bulk Preview Section */
+.bulk-preview {
+  margin-top: 20px;
+  background: #fff;
+  padding: 15px;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  margin-bottom: 20px;
+}
+
+.bulk-preview h3 {
+  margin-bottom: 10px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  text-align: left;
+  margin-bottom: 20px;
+}
+
+/* Preview Table */
+.bulk-preview table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.bulk-preview th,
+.bulk-preview td {
+  padding: 10px;
+  border: 1px solid #ddd;
+  text-align: left;
+}
+
+.bulk-preview th {
+  background: #f1f1f1;
+  font-weight: 600;
+  color: #444;
+}
+
+.bulk-preview tr:nth-child(even) {
+  background: #fafafa;
+}
+
+.bulk-preview tr:hover {
+  background: #f0f8ff;
+}
+
+.cancel-upload-btn{
+    background: #a72e28;
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+  margin-top: 10px;
+}

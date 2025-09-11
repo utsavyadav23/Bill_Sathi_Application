@@ -179,6 +179,71 @@ const productCount = async (req, res) => {
     res.status(500).json({ error: "Database error" });
   }
 };
+const bulkUpload = async (req, res) => {
+  try {
+    let products = [];
+    if (req.body.products) {
+      try {
+        products = JSON.parse(req.body.products);
+      } catch (err) {
+        return res.status(400).json({ success: false, error: "Invalid products JSON" });
+      }
+    }
+
+    if (!Array.isArray(products) || products.length === 0) {
+      return res.status(400).json({ success: false, error: "No product data found" });
+    }
+
+    const [categories] = await db.query("SELECT id, category_name FROM categories");
+    const categoryMap = {};
+    categories.forEach((c) => {
+      categoryMap[c.category_name.toLowerCase()] = c.id;
+    });
+
+    const uploadedImages = {};
+    if (req.files && req.files.length > 0) {
+      req.files.forEach((file) => {
+        uploadedImages[file.originalname] = file.filename; // map original name → saved filename
+      });
+    }
+
+    const formattedProducts = products.map((p) => {
+      const categoryId = categoryMap[p.category?.toLowerCase()] || categoryMap["others"];
+
+      let imagePath = "";
+      if (p.image && uploadedImages[p.image]) {
+        imagePath = `/uploads/${uploadedImages[p.image]}`;
+      }
+
+      return [
+        p.product_name || "",
+        p.barcode || "",
+        Number(p.selling_price || 0),
+        Number(p.purchase_price || 0),
+        Number(p.stock || 0),
+        categoryId,
+        imagePath,
+        new Date(),
+      ];
+    });
+
+    const sql = `
+      INSERT INTO products
+      (product_name, barcode, selling_price, purchase_price, stock, category, image, created_at)
+      VALUES ?
+    `;
+    const [result] = await db.query(sql, [formattedProducts]);
+
+    res.json({
+      success: true,
+      message: "Products uploaded successfully",
+      inserted: result.affectedRows,
+    });
+  } catch (err) {
+    console.error("Bulk Upload Error:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+};
 
 module.exports = {
   addProduct,
@@ -187,4 +252,5 @@ module.exports = {
   deleteProduct,
   getProductById,
   productCount,
+  bulkUpload,
 };
