@@ -62,6 +62,11 @@ const appUsersTable = `
     app_user_email VARCHAR(100) UNIQUE NOT NULL,
     store_name VARCHAR(255),
     gst_number VARCHAR(20),
+    currency VARCHAR(10) DEFAULT 'INR',
+    language VARCHAR(10) DEFAULT 'en',
+    bill_type ENUM('Retail','Wholesale') DEFAULT 'Retail',
+    bill_prefix VARCHAR(20) DEFAULT 'BILL-',
+    barcode_enabled TINYINT(1) DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   )
 `;

@@ -10,6 +10,7 @@ const categoryRoutes = require("./routes/categoryRoutes");
 const billItemRoutes = require("./routes/billItemRoutes");
 const billRoutes = require("./routes/billRoutes");
 const billsAndDuesRoutes = require("./routes/billsAndDuesRoutes");
+const appUserRoutes = require("./routes/appUserRoutes");
 
 const app = express();
 app.use(cors());
@@ -25,6 +26,7 @@ app.use("/api/bill-items", billItemRoutes);
 app.use("/api/bills", billRoutes);
 app.use("/api/billpdfs",billRoutes);
 app.use("/api/billsanddues",billsAndDuesRoutes);
+app.use("/api/appusers",appUserRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

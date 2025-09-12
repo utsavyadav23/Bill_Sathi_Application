@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
+import axios from "axios";
 import "./../styling/Sidebar.css";
 
 // Assets
@@ -27,6 +28,25 @@ const menuItems = [
 ];
 
 const Sidebar = () => {
+  const [user, setUser] = useState({ username: "", app_user_designation: "" });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await axios.get(
+          "http://localhost:5000/api/appUsers/settings"
+        );
+        setUser(res.data);
+      } catch (err) {
+        console.error("Error fetching user:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUser();
+  }, []);
   return (
     <div className="sidebar">
       {/* Header */}
@@ -57,8 +77,12 @@ const Sidebar = () => {
         <div className="profile-info">
           <img src={profileIcon} alt="Profile" className="profile-img" />
           <div className="profile-text">
-            <p className="name">Ravi Kumar</p>
-            <p className="role">Electrical Owner</p>
+            <p className="name">
+              {loading ? "Loading..." : user?.username || "Unknown"}
+            </p>
+            <p className="role">
+              {loading ? "..." : user?.app_user_designation || "No Role"}
+            </p>
           </div>
         </div>
         <img src={logoutIcon} alt="Logout" className="logout-icon" />
