@@ -4,7 +4,7 @@ const addProduct = async (req, res) => {
     req.body;
   const image = req.file ? req.file.filename : null;
 
-  if (!name || !purchasePrice || !sellingPrice) {
+  if (!name || !sellingPrice) {
     return res
       .status(400)
       .json({ error: "Name, Purchase Price & Selling Price are required." });
@@ -15,8 +15,27 @@ const addProduct = async (req, res) => {
       `INSERT INTO products 
         (product_name, barcode, selling_price, purchase_price, category, stock, image)
        VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [name, barcode, sellingPrice, purchasePrice, category, quantity, image]
+      [
+        name,
+        barcode,
+        sellingPrice,
+        purchasePrice || 0,
+        category,
+        quantity || 0,
+        image,
+      ]
     );
+
+    const productId = result.insertId;
+
+    // If stock > 0, also insert a purchase record
+    if (quantity > 0 && purchasePrice > 0) {
+      await db.query(
+        `INSERT INTO purchases (product_id, category_id, quantity, purchase_price, created_at)
+         VALUES (?, ?, ?, ?, NOW())`,
+        [productId, category, quantity, purchasePrice]
+      );
+    }
 
     res.json({
       message: "Product added successfully!",
@@ -101,13 +120,31 @@ const editProduct = async (req, res) => {
       return res.status(400).json({ message: "No fields provided to update" });
     }
 
+    // Fetch existing product before update
+    const [oldProductRows] = await db.query(
+      "SELECT stock, purchase_price, category FROM products WHERE id = ?",
+      [id]
+    );
+    if (oldProductRows.length === 0) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+    const oldProduct = oldProductRows[0];
+
+    // Update product
     const query = `UPDATE products SET ${updates.join(", ")} WHERE id = ?`;
     values.push(id);
-
     const [result] = await db.query(query, values);
 
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ message: "Product not found" });
+    // Log a purchase if stock increased or purchase_price changed
+    if (stock && stock > oldProduct.stock) {
+      const addedQty = stock - oldProduct.stock;
+      const latestPrice = purchase_price || oldProduct.purchase_price;
+
+      await db.query(
+        `INSERT INTO purchases (product_id, category_id, quantity, purchase_price, created_at)
+         VALUES (?, ?, ?, ?, NOW())`,
+        [id, category || oldProduct.category, addedQty, latestPrice]
+      );
     }
 
     res.json({ message: "Product updated successfully" });
@@ -179,6 +216,7 @@ const productCount = async (req, res) => {
     res.status(500).json({ error: "Database error" });
   }
 };
+
 const bulkUpload = async (req, res) => {
   try {
     let products = [];
@@ -186,15 +224,21 @@ const bulkUpload = async (req, res) => {
       try {
         products = JSON.parse(req.body.products);
       } catch (err) {
-        return res.status(400).json({ success: false, error: "Invalid products JSON" });
+        return res
+          .status(400)
+          .json({ success: false, error: "Invalid products JSON" });
       }
     }
 
     if (!Array.isArray(products) || products.length === 0) {
-      return res.status(400).json({ success: false, error: "No product data found" });
+      return res
+        .status(400)
+        .json({ success: false, error: "No product data found" });
     }
 
-    const [categories] = await db.query("SELECT id, category_name FROM categories");
+    const [categories] = await db.query(
+      "SELECT id, category_name FROM categories"
+    );
     const categoryMap = {};
     categories.forEach((c) => {
       categoryMap[c.category_name.toLowerCase()] = c.id;
@@ -203,12 +247,13 @@ const bulkUpload = async (req, res) => {
     const uploadedImages = {};
     if (req.files && req.files.length > 0) {
       req.files.forEach((file) => {
-        uploadedImages[file.originalname] = file.filename; // map original name → saved filename
+        uploadedImages[file.originalname] = file.filename;
       });
     }
 
     const formattedProducts = products.map((p) => {
-      const categoryId = categoryMap[p.category?.toLowerCase()] || categoryMap["others"];
+      const categoryId =
+        categoryMap[p.category?.toLowerCase()] || categoryMap["others"];
 
       let imagePath = "";
       if (p.image && uploadedImages[p.image]) {
@@ -234,6 +279,34 @@ const bulkUpload = async (req, res) => {
     `;
     const [result] = await db.query(sql, [formattedProducts]);
 
+    if (result.insertId) {
+      const insertedId = result.insertId;
+      const insertedCount = result.affectedRows;
+      const purchases = formattedProducts
+        .map((p, i) => {
+          const stock = p[4];
+          const purchasePrice = p[3];
+          const categoryId = p[5];
+          if (stock > 0 && purchasePrice > 0) {
+            return [
+              insertedId + i,
+              categoryId,
+              stock,
+              purchasePrice,
+              new Date(),
+            ];
+          }
+          return null;
+        })
+        .filter(Boolean);
+
+      if (purchases.length > 0) {
+        await db.query(
+          `INSERT INTO purchases (product_id, category_id, quantity, purchase_price, created_at) VALUES ?`,
+          [purchases]
+        );
+      }
+    }
     res.json({
       success: true,
       message: "Products uploaded successfully",

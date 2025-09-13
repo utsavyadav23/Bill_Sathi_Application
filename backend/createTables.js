@@ -79,16 +79,6 @@ const categoriesTable = `
   )
 `;
 
-const salesTable = `
-  CREATE TABLE IF NOT EXISTS sales (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    customer_id INT,
-    total DECIMAL(10,2) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (customer_id) REFERENCES customers(id)
-  )
-`;
-
 const reportsTable = `
   CREATE TABLE IF NOT EXISTS reports (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -128,6 +118,32 @@ CREATE TABLE IF NOT EXISTS  bill_pdfs (
   FOREIGN KEY (bill_id) REFERENCES bills(id) ON DELETE CASCADE
 )`;
 
+const purchasesTable = `CREATE TABLE IF NOT EXISTS purchases (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    product_id INT NOT NULL,
+    category_id INT NOT NULL,
+    quantity INT NOT NULL,
+    purchase_price DECIMAL(10,2) NOT NULL,
+    total_amount DECIMAL(12,2) GENERATED ALWAYS AS (quantity * purchase_price) STORED,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_purchases_product FOREIGN KEY (product_id) REFERENCES products(id),
+    CONSTRAINT fk_purchases_category FOREIGN KEY (category_id) REFERENCES categories(id)
+)`;
+
+const salesTable = `CREATE TABLE IF NOT EXISTS order_items (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    bill_items_id INT NOT NULL,
+    product_id INT NOT NULL,
+    category_id INT NOT NULL,
+    quantity INT NOT NULL,
+    selling_price DECIMAL(10,2) NOT NULL,
+    total_amount DECIMAL(12,2) GENERATED ALWAYS AS (quantity * selling_price) STORED,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_order_items_bill_items FOREIGN KEY (bill_items_id) REFERENCES bill_items(id),
+    CONSTRAINT fk_order_items_product FOREIGN KEY (product_id) REFERENCES products(id),
+    CONSTRAINT fk_order_items_category FOREIGN KEY (category_id) REFERENCES categories(id)
+)`;
+
 async function createTables() {
   try {
     await db.query(customersTable);
@@ -162,6 +178,9 @@ async function createTables() {
 
     await db.query(billPdfsTable);
     console.log("Bill PDFs table ready.");
+
+    await db.query(purchasesTable);
+    console.log("Purchase table ready.");
 
     console.log("All tables created successfully!");
     process.exit(0);

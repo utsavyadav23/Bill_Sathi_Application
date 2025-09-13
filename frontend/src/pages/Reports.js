@@ -50,6 +50,7 @@ const Reports = () => {
 
   const [totalCustomers, setTotalCustomers] = useState(0);
   const [monthSales, setMonthSales] = useState(0);
+  const [monthPurchases, setMonthPurchases] = useState(0);
 
   useEffect(() => {
     const fetchMonthSales = async () => {
@@ -76,6 +77,20 @@ const Reports = () => {
       }
     };
     fetchCustomerCount();
+  }, []);
+
+  useEffect(() => {
+    const fetchMonthPurchases = async () => {
+      try {
+        const response = await axios.get(
+          "http://localhost:5000/api/purchases/month-purchases"
+        );
+        setMonthPurchases(response.data.month_purchases);
+      } catch (error) {
+        console.error("Error fetching purchase sums:", error);
+      }
+    };
+    fetchMonthPurchases();
   }, []);
 
   return (
@@ -108,7 +123,7 @@ const Reports = () => {
             <span>Total Purchases</span>
             <FaArrowDown className="arrow negative" />
           </div>
-          <h2>₹ 82,300</h2>
+          <h2>{formatCurrency(monthPurchases)}</h2>
           <p className="growth">
             <span className="negative">-5%</span> <span>This Month</span>
           </p>

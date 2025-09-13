@@ -2,7 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
- 
+
 const customerRoutes = require("./routes/customerRoutes");
 const productRoutes = require("./routes/productRoutes");
 const planRoutes = require("./routes/planRoutes");
@@ -11,6 +11,7 @@ const billItemRoutes = require("./routes/billItemRoutes");
 const billRoutes = require("./routes/billRoutes");
 const billsAndDuesRoutes = require("./routes/billsAndDuesRoutes");
 const appUserRoutes = require("./routes/appUserRoutes");
+const purchaseRoutes = require("./routes/purchaseRoutes");
 
 const app = express();
 app.use(cors());
@@ -24,9 +25,10 @@ app.use("/api/plans", planRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/bill-items", billItemRoutes);
 app.use("/api/bills", billRoutes);
-app.use("/api/billpdfs",billRoutes);
-app.use("/api/billsanddues",billsAndDuesRoutes);
-app.use("/api/appusers",appUserRoutes);
+app.use("/api/billpdfs", billRoutes);
+app.use("/api/billsanddues", billsAndDuesRoutes);
+app.use("/api/appusers", appUserRoutes);
+app.use("/api/purchases", purchaseRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
