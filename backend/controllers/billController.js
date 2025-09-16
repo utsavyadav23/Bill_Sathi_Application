@@ -1,21 +1,47 @@
 const db = require("../config/db");
 
-// Save a bill
-const saveBill = async (req, res) => {
+const nextNumber = async (req, res) => {
   try {
-    const [result] = await db.query(
+    const [[row]] = await db.query(
+      "SELECT MAX(bill_number) as lastId FROM bills"
+    );
+    const sequenceId = (row.lastId || 0) + 1;
+    const billNumber = `BILL-${String(sequenceId).padStart(4, "0")}`;
+    res.json({ billNumber, sequenceId });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error generating preview bill number" });
+  }
+};
+//Save Bill
+const saveBill = async (req, res) => {
+  const conn = await db.getConnection();
+  try {
+    const {
+      customer_id,
+      total,
+      discount,
+      tax,
+      grand_total,
+      status,
+      payment_method,
+      notes,
+    } = req.body;
+
+    await conn.beginTransaction();
+    const [result] = await conn.query(
       `INSERT INTO bills 
       (customer_id, total, discount, tax, grand_total, status, payment_method, notes) 
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [
-        req.body.customer_id,
-        req.body.total,
-        req.body.discount || 0,
-        req.body.tax || 0,
-        req.body.grand_total,
-        req.body.status || "due",
-        req.body.payment_method || "CASH",
-        req.body.notes || null,
+        customer_id,
+        total,
+        discount || 0,
+        tax || 0,
+        grand_total,
+        status || "due",
+        payment_method || "CASH",
+        notes || null,
       ]
     );
 
@@ -24,29 +50,115 @@ const saveBill = async (req, res) => {
       "0"
     )}`;
 
+    const billId = result.insertId;
+    await conn.query(
+      `UPDATE bill_items SET bill_id=? WHERE customer_id=? AND bill_id IS NULL`,
+      [billId, customer_id]
+    );
+
+    await conn.commit();
+
     res.json({
       success: true,
-      id: result.insertId,
+      id: billId,
       billNumber: formattedBillNumber,
     });
   } catch (err) {
-    console.error("Save Bill Error:", err.sqlMessage || err.message);
-    res.status(500).json({
-      success: false,
-      error: err.sqlMessage || err.message,
-    });
+    await conn.rollback();
+    console.error("Save Bill Error:", err.message);
+    res.status(500).json({ success: false, error: err.message });
+  } finally {
+    conn.release();
   }
 };
 
-// Upload API
+const cancelBill = async (req, res) => {
+  const conn = await db.getConnection();
+  try {
+    const bill_id = req.params.sequenceId || null;
+    const customer_id = req.query.customer_id || null;
+
+    await conn.beginTransaction();
+
+    if (bill_id) {
+      // Cancel saved bill
+      const [items] = await conn.query(
+        "SELECT product_id, quantity FROM bill_items WHERE bill_id=?",
+        [bill_id]
+      );
+
+      if (items.length > 0) {
+        for (const item of items) {
+          await conn.query("UPDATE products SET stock=stock+? WHERE id=?", [
+            item.quantity,
+            item.product_id,
+          ]);
+        }
+
+        await conn.query("DELETE FROM bill_items WHERE bill_id=?", [bill_id]);
+      }
+
+      await conn.query("DELETE FROM bills WHERE bill_number=?", [bill_id]);
+
+      await conn.commit();
+      return res.json({
+        success: true,
+        type: "saved",
+        message: "Saved bill cancelled successfully",
+      });
+    }
+
+    if (customer_id) {
+      // Cancel draft bill
+      const [draftItems] = await conn.query(
+        "SELECT product_id, quantity FROM bill_items WHERE customer_id=? AND bill_id IS NULL",
+        [customer_id]
+      );
+
+      if (draftItems.length > 0) {
+        for (const item of draftItems) {
+          await conn.query("UPDATE products SET stock=stock+? WHERE id=?", [
+            item.quantity,
+            item.product_id,
+          ]);
+        }
+
+        await conn.query(
+          "DELETE FROM bill_items WHERE customer_id=? AND bill_id IS NULL",
+          [customer_id]
+        );
+      }
+
+      await conn.commit();
+      return res.json({
+        success: true,
+        type: "draft",
+        message: "Draft bill cancelled successfully",
+      });
+    }
+
+    // If neither bill_id nor customer_id was provided
+    await conn.rollback();
+    return res
+      .status(400)
+      .json({ success: false, error: "bill_id or customer_id required" });
+  } catch (err) {
+    await conn.rollback();
+    console.error("Error cancelling bill:", err.message);
+    res.status(500).json({ success: false, error: err.message });
+  } finally {
+    conn.release();
+  }
+};
+
 const uploadPDF = async (req, res) => {
   try {
     const { bill_id } = req.body;
-    if (!bill_id) {
+    if (!bill_id)
       return res
         .status(400)
         .json({ success: false, error: "bill_id is required" });
-    }
+
     const filePath = `/uploads/pdfs/${req.file.filename}`;
     const [result] = await db.query(
       "INSERT INTO bill_pdfs (bill_id, file_path) VALUES (?, ?)",
@@ -55,19 +167,8 @@ const uploadPDF = async (req, res) => {
 
     res.json({ success: true, insertedId: result.insertId, filePath });
   } catch (err) {
-    console.error("Upload PDF Error:", err.sqlMessage || err.message);
+    console.error("Upload PDF Error:", err.message);
     res.status(500).json({ success: false, error: "Failed to save PDF" });
-  }
-};
-
-const nextNumber = async (req, res) => {
-  try {
-    const [rows] = await db.query("SELECT COUNT(*) as count FROM bills");
-    const count = rows[0].count + 1;
-    const billNumber = `BILL-${String(count).padStart(4, "0")}`;
-    res.json({ billNumber });
-  } catch (err) {
-    res.status(500).json({ error: "Error generating bill number" });
   }
 };
 
@@ -101,7 +202,7 @@ const updateBill = async (req, res) => {
     );
     res.json({ success: true, message: "Bill updated successfully" });
   } catch (err) {
-    console.error(" Error updating bill:", err);
+    console.error("Error updating bill:", err.message);
     res.status(500).json({ success: false, error: "Failed to update bill" });
   }
 };
@@ -110,15 +211,8 @@ const getBillSums = async (req, res) => {
   try {
     const [rows] = await db.query(`
       SELECT
-        -- Today's sales
-        (SELECT SUM(grand_total) 
-         FROM bills 
-         WHERE DATE(created_at) = CURDATE()) AS today_sales,
-
-        -- All-time due
-        (SELECT SUM(grand_total) 
-         FROM bills 
-         WHERE status = 'Due') AS total_due
+        (SELECT SUM(grand_total) FROM bills WHERE DATE(created_at) = CURDATE()) AS today_sales,
+        (SELECT SUM(grand_total) FROM bills WHERE status = 'Due') AS total_due
     `);
 
     res.json({
@@ -126,7 +220,7 @@ const getBillSums = async (req, res) => {
       total_due: rows[0].total_due || 0,
     });
   } catch (err) {
-    console.error("Error fetching bill sums:", err);
+    console.error("Error fetching bill sums:", err.message);
     res.status(500).json({ error: "Database error" });
   }
 };
@@ -134,17 +228,14 @@ const getBillSums = async (req, res) => {
 const getMonthSales = async (req, res) => {
   try {
     const [rows] = await db.query(`
-      SELECT 
-        COALESCE(SUM(grand_total), 0) AS month_sales
+      SELECT COALESCE(SUM(grand_total), 0) AS month_sales
       FROM bills
-      WHERE MONTH(created_at) = MONTH(CURDATE())
-        AND YEAR(created_at) = YEAR(CURDATE())
+      WHERE MONTH(created_at) = MONTH(CURDATE()) AND YEAR(created_at) = YEAR(CURDATE())
     `);
 
-    res.json({
-      month_sales: rows[0].month_sales || 0,
-    });
+    res.json({ month_sales: rows[0].month_sales || 0 });
   } catch (err) {
+    console.error("Error fetching month sales:", err.message);
     res.status(500).json({ error: "Database error" });
   }
 };
@@ -156,4 +247,5 @@ module.exports = {
   updateBill,
   getBillSums,
   getMonthSales,
+  cancelBill,
 };

@@ -11,16 +11,17 @@ const addProduct = async (req, res) => {
   }
 
   try {
+    const categoryId = category ? parseInt(category) : null;
     const [result] = await db.query(
       `INSERT INTO products 
-        (product_name, barcode, selling_price, purchase_price, category, stock, image)
+        (product_name, barcode, selling_price, purchase_price, category_id, stock, image)
        VALUES (?, ?, ?, ?, ?, ?, ?)`,
       [
         name,
         barcode,
         sellingPrice,
         purchasePrice || 0,
-        category,
+        categoryId,
         quantity || 0,
         image,
       ]
@@ -33,7 +34,7 @@ const addProduct = async (req, res) => {
       await db.query(
         `INSERT INTO purchases (product_id, category_id, quantity, purchase_price, created_at)
          VALUES (?, ?, ?, ?, NOW())`,
-        [productId, category, quantity, purchasePrice]
+        [productId, categoryId, quantity, purchasePrice]
       );
     }
 
@@ -58,9 +59,10 @@ const getProducts = async (req, res) => {
         products.stock,
         products.purchase_price,
         products.selling_price,
+        products.category_id,
         categories.category_name AS category
       FROM products
-      JOIN categories ON products.category = categories.id
+      JOIN categories ON products.category_id = categories.id
       ORDER BY products.id DESC
     `);
 
@@ -75,7 +77,7 @@ const editProduct = async (req, res) => {
   const { id } = req.params;
   const {
     product_name,
-    category,
+    category_id,
     purchase_price,
     selling_price,
     stock,
@@ -89,9 +91,9 @@ const editProduct = async (req, res) => {
     updates.push("product_name = ?");
     values.push(product_name);
   }
-  if (category !== undefined && category !== "") {
-    updates.push("category = ?");
-    values.push(category);
+  if (category_id !== undefined && category_id !== "") {
+    updates.push("category_id = ?");
+    values.push(category_id);
   }
   if (purchase_price !== undefined && purchase_price !== "") {
     updates.push("purchase_price = ?");
@@ -122,7 +124,7 @@ const editProduct = async (req, res) => {
 
     // Fetch existing product before update
     const [oldProductRows] = await db.query(
-      "SELECT stock, purchase_price, category FROM products WHERE id = ?",
+      "SELECT stock, purchase_price, category_id FROM products WHERE id = ?",
       [id]
     );
     if (oldProductRows.length === 0) {
@@ -143,7 +145,7 @@ const editProduct = async (req, res) => {
       await db.query(
         `INSERT INTO purchases (product_id, category_id, quantity, purchase_price, created_at)
          VALUES (?, ?, ?, ?, NOW())`,
-        [id, category || oldProduct.category, addedQty, latestPrice]
+        [id, category_id || oldProduct.category_id, addedQty, latestPrice]
       );
     }
 
@@ -165,11 +167,11 @@ const getProductById = async (req, res) => {
         products.stock,
         products.purchase_price,
         products.selling_price,
-        products.category AS category_id, 
+        products.category_id, 
         products.image, 
         categories.category_name 
       FROM products
-      JOIN categories ON products.category = categories.id
+      JOIN categories ON products.category_id = categories.id
        WHERE products.id = ?`,
       [req.params.id]
     );
@@ -274,7 +276,7 @@ const bulkUpload = async (req, res) => {
 
     const sql = `
       INSERT INTO products
-      (product_name, barcode, selling_price, purchase_price, stock, category, image, created_at)
+      (product_name, barcode, selling_price, purchase_price, stock, category_id, image, created_at)
       VALUES ?
     `;
     const [result] = await db.query(sql, [formattedProducts]);

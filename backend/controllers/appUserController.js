@@ -62,7 +62,17 @@ const getAppUserSettings = async (req, res) => {
     );
 
     if (rows.length === 0) {
-      return res.status(404).json({ message: "Settings not found" });
+      return res.json({
+        store_name: "",
+        gst_number: "",
+        app_user_email: "",
+        app_user_mobile_number: "",
+        currency: "INR",
+        language: "en",
+        bill_type: "Retail",
+        bill_prefix: "",
+        barcode_enabled: 0,
+      });
     }
 
     res.json(rows[0]);

@@ -8,7 +8,7 @@ const EditProduct = () => {
 
   const [product, setProduct] = useState({
     product_name: "",
-    category: "",
+    category_id: "",
     purchase_price: "",
     selling_price: "",
     stock: "",
@@ -32,7 +32,7 @@ const EditProduct = () => {
 
         setProduct({
           product_name: data.product_name,
-          category: data.category_id,
+          category_id: data.category_id,
           purchase_price: data.purchase_price,
           selling_price: data.selling_price,
           stock: data.stock,
@@ -71,7 +71,7 @@ const EditProduct = () => {
     try {
       const formData = new FormData();
       formData.append("product_name", product.product_name);
-      formData.append("category", product.category);
+      formData.append("category_id", product.category_id);
       formData.append("purchase_price", product.purchase_price);
       formData.append("selling_price", product.selling_price);
       formData.append("stock", product.stock);
@@ -118,8 +118,8 @@ const EditProduct = () => {
           <label>Category *</label>
 
           <select
-            name="category"
-            value={product.category}
+            name="category_id"
+            value={product.category_id}
             onChange={handleInputChange}
           >
             <option value="">Select category</option>

@@ -8,6 +8,7 @@ const {
   updateBill,
   getBillSums,
   getMonthSales,
+  cancelBill,
 } = require("../controllers/billController");
 
 const router = express.Router();
@@ -30,5 +31,6 @@ router.get("/next-number", nextNumber);
 router.get("/sums", getBillSums);
 router.get("/month-sales", getMonthSales);
 router.put("/:id", updateBill);
+router.delete("/:bill_id/cancel", cancelBill);
 
 module.exports = router;

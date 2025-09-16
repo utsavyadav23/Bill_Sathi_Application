@@ -104,20 +104,36 @@ const EditBill = () => {
   //  Add new item to bill
   const handleAddBillItem = async () => {
     if (selectedProduct && quantity > 0 && unitPrice) {
-      const productDetails = products.find(
-        (p) => p.id === Number(selectedProduct)
-      );
-      const newItem = {
-        id: Date.now(),
-        product: productDetails ? productDetails.product_name : selectedProduct,
-        quantity,
-        unitPrice,
-        total: quantity * unitPrice,
-      };
-      setBillItems([...billItems, newItem]);
-      setSelectedProduct("");
-      setQuantity("");
-      setUnitPrice("");
+      try {
+        const productDetails = products.find(
+          (p) => p.id === Number(selectedProduct)
+        );
+        const response = await axios.post(
+          "http://localhost:5000/api/bill-items",
+          {
+            bill_id: billData.id,
+            product_id: Number(selectedProduct),
+            quantity,
+            unit_price: unitPrice,
+          }
+        );
+
+        const newItem = {
+          id: response.data.id,
+          product: productDetails.product_name,
+          quantity,
+          unitPrice,
+          total: quantity * unitPrice,
+        };
+
+        setBillItems([...billItems, newItem]);
+        setSelectedProduct("");
+        setQuantity("");
+        setUnitPrice("");
+      } catch (err) {
+        console.error("Error adding bill item:", err);
+        alert("Failed to add item");
+      }
     }
   };
   // Edit item
@@ -126,22 +142,45 @@ const EditBill = () => {
     setEditQuantity(item.quantity);
     setEditUnitPrice(item.unitPrice);
   };
-  const handleSaveEdit = (index, item) => {
-    const updatedItem = {
-      ...item,
-      quantity: editQuantity,
-      unitPrice: editUnitPrice,
-      total: editQuantity * editUnitPrice,
-    };
-    const updatedBillItems = [...billItems];
-    updatedBillItems[index] = updatedItem;
-    setBillItems(updatedBillItems);
-    setEditingIndex(null);
+  const handleSaveEdit = async (index, item) => {
+    try {
+      await axios.put(`http://localhost:5000/api/bill-items/${item.id}`, {
+        quantity: editQuantity,
+        unitPrice: editUnitPrice,
+      });
+
+      const updatedItem = {
+        ...item,
+        quantity: editQuantity,
+        unitPrice: editUnitPrice,
+        total: editQuantity * editUnitPrice,
+      };
+      const updatedBillItems = [...billItems];
+      updatedBillItems[index] = updatedItem;
+      setBillItems(updatedBillItems);
+      setEditingIndex(null);
+    } catch (err) {
+      console.error("Error updating item:", err);
+      alert("Failed to update item");
+    }
   };
 
   // Delete item
-  const handleDelete = (index) => {
-    setBillItems(billItems.filter((_, i) => i !== index));
+  const handleDelete = async (index) => {
+    const item = billItems[index];
+    if (!item?.id) {
+      // item not saved yet, just remove from state
+      setBillItems(billItems.filter((_, i) => i !== index));
+      return;
+    }
+
+    try {
+      await axios.delete(`http://localhost:5000/api/bill-items/${item.id}`);
+      setBillItems(billItems.filter((_, i) => i !== index));
+    } catch (err) {
+      console.error("Error deleting item:", err);
+      alert("Failed to delete item");
+    }
   };
 
   // Save edited bill

@@ -20,7 +20,7 @@ const Subscription = () => {
         <div className="plan-info">
           <p className="breadcrumb">Current Plan</p>
           <h2 className="plan-title">Free Plan</h2>
-          <p className="valid-until">Valid until: December 31, 2023</p>
+          <p className="valid-until">Valid until: January  1, 2026</p>
         </div>
         <span className="status-active">ACTIVE</span>
       </div>

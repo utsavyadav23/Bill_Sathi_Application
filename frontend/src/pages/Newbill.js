@@ -8,6 +8,7 @@ const NewBill = () => {
   const navigate = useNavigate();
   const [billNumber, setBillNumber] = useState("");
   const [manualSection, setManualSection] = useState(true);
+  const [sequenceId, setSequenceId] = useState(null);
 
   // Customer states
   const [customers, setCustomers] = useState([]);
@@ -46,11 +47,16 @@ const NewBill = () => {
   }, []);
 
   useEffect(() => {
-    axios
-      .get("http://localhost:5000/api/bills/next-number")
-      .then((res) => setBillNumber(res.data.billNumber))
-      .catch((err) => console.error(err));
-  }, []);
+    if (!sequenceId) {
+      axios
+        .get("http://localhost:5000/api/bills/next-number")
+        .then((res) => {
+          setSequenceId(res.data.sequenceId);
+          setBillNumber(res.data.billNumber);
+        })
+        .catch(console.error);
+    }
+  }, [sequenceId]);
 
   const handlePreview = () => {
     let previewCustomerName = customerName;
@@ -279,8 +285,27 @@ const NewBill = () => {
     }
   };
 
-  // Cancel bill
-  const handleCancel = () => {
+  const handleCancel = async () => {
+    try {
+      const response = await axios.delete(
+        `http://localhost:5000/api/bills/${sequenceId || ""}/cancel`,
+        {
+          params: { customer_id: selectedCustomerId },
+        }
+      );
+
+      if (response.data.success) {
+        alert(`${response.data.message} & stock restored`);
+        resetForm();
+        navigate("/NewBill");
+      }
+    } catch (error) {
+      console.error("Error cancelling bill:", error);
+      alert("Failed to cancel bill");
+    }
+  };
+
+  const resetForm = () => {
     setSelectedCustomerId("");
     setCustomerName("");
     setCustomerMobile("");
@@ -290,8 +315,8 @@ const NewBill = () => {
     setTaxValue("");
     setPaymentMethod("CASH");
     setNotes("");
+    // setBillNumber("");
   };
-
   return (
     <div className="newbill-container">
       {/* Header */}

@@ -7,7 +7,7 @@ const Inventory = () => {
   const navigate = useNavigate();
   const [product, setProduct] = useState({
     name: "",
-    category: "",
+    categoryId: "",
     purchasePrice: "",
     sellingPrice: "",
     quantity: "",
@@ -36,7 +36,7 @@ const Inventory = () => {
     try {
       const formData = new FormData();
       formData.append("name", product.name);
-      formData.append("category", product.category);
+      formData.append("category", product.categoryId);
       formData.append("purchasePrice", product.purchasePrice);
       formData.append("sellingPrice", product.sellingPrice);
       formData.append("quantity", product.quantity);
@@ -57,7 +57,7 @@ const Inventory = () => {
         // reset form
         setProduct({
           name: "",
-          category: "",
+          categoryId: "",
           purchasePrice: "",
           sellingPrice: "",
           quantity: "",
@@ -95,8 +95,8 @@ const Inventory = () => {
           {/* Category */}
           <label>Category *</label>
           <select
-            name="category"
-            value={product.category}
+            name="categoryId"
+            value={product.categoryId}
             onChange={handleInputChange}
           >
             <option value="">Select category</option>

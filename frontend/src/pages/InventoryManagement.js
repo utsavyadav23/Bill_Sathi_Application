@@ -49,10 +49,14 @@ const InventoryManagement = () => {
   }, []);
   // filter + sort
   const filteredProducts = products
-    .filter((p) =>
-      p.product_name.toLowerCase().includes(searchQuery.toLowerCase())
+    .filter(
+      (p) =>
+        p.product_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.category.toLowerCase().includes(searchQuery.toLowerCase())
     )
-    .filter((p) => (selectedCategory ? p.category === selectedCategory : true))
+    .filter((p) =>
+      selectedCategory ? p.category_id === Number(selectedCategory) : true
+    )
     .sort((a, b) => {
       if (sortBy === "name")
         return a.product_name.localeCompare(b.product_name);
@@ -171,13 +175,13 @@ const InventoryManagement = () => {
         ) : (
           <div className="bulk-actions">
             <button className="confirm-upload-btn" onClick={handleBulkUpload}>
-               Confirm Upload ({bulkProducts.length})
+              Confirm Upload ({bulkProducts.length})
             </button>
             <button
               className="cancel-upload-btn"
               onClick={() => setBulkProducts([])}
             >
-               Cancel
+              Cancel
             </button>
           </div>
         )}
@@ -189,25 +193,25 @@ const InventoryManagement = () => {
           <table>
             <thead>
               <tr>
-             <th>Product Name</th>
-          <th>Barcode</th>
-          <th>Stock</th>
-          <th>Purchase Price</th>
-          <th>Selling Price</th>
-          <th>Category</th>
+                <th>Product Name</th>
+                <th>Barcode</th>
+                <th>Stock</th>
+                <th>Purchase Price</th>
+                <th>Selling Price</th>
+                <th>Category</th>
               </tr>
             </thead>
             <tbody>
-         {bulkProducts.map((row, i) => (
-          <tr key={i}>
-            <td>{row.product_name}</td>
-            <td>{row.barcode}</td>
-            <td>{row.stock}</td>
-            <td>{row.purchase_price}</td>
-            <td>{row.selling_price}</td>
-            <td>{row.category}</td>
-          </tr>
-        ))}
+              {bulkProducts.map((row, i) => (
+                <tr key={i}>
+                  <td>{row.product_name}</td>
+                  <td>{row.barcode}</td>
+                  <td>{row.stock}</td>
+                  <td>{row.purchase_price}</td>
+                  <td>{row.selling_price}</td>
+                  <td>{row.category}</td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
@@ -221,7 +225,7 @@ const InventoryManagement = () => {
         >
           <option value="">Category</option>
           {categories.map((cat) => (
-            <option key={cat.id} value={cat.category_name}>
+            <option key={cat.id} value={cat.id}>
               {cat.category_name}
             </option>
           ))}

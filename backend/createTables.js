@@ -8,6 +8,13 @@ const customersTable = `
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   )
 `;
+const categoriesTable = `
+  CREATE TABLE IF NOT EXISTS categories (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    category_name VARCHAR(100) UNIQUE NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  )
+`;
 
 const productsTable = `
   CREATE TABLE IF NOT EXISTS products (
@@ -17,9 +24,10 @@ const productsTable = `
     selling_price DECIMAL(10,2) NOT NULL,
     purchase_price DECIMAL(10,2) NOT NULL,
     stock INT DEFAULT 0,
-    category VARCHAR(50),
+    category_id INT NULL,
     image VARCHAR(200),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (category_id) REFERENCES categories(id)
   )
 `;
 
@@ -43,16 +51,17 @@ const billItemsTable = `
   CREATE TABLE IF NOT EXISTS bill_items (
     id INT AUTO_INCREMENT PRIMARY KEY,
     customer_id INT,
+    bill_id INT NULL,
     product_id INT,
     quantity INT NOT NULL,
     unit_price DECIMAL(10,2) NOT NULL,
     total DECIMAL(10,2) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (customer_id) REFERENCES customers(id),
-    FOREIGN KEY (product_id) REFERENCES products(id)
+    FOREIGN KEY (product_id) REFERENCES products(id),
+    FOREIGN KEY (bill_id) REFERENCES bills(bill_number) ON DELETE CASCADE
   )
 `;
-
 const appUsersTable = `
   CREATE TABLE IF NOT EXISTS app_users (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -67,14 +76,6 @@ const appUsersTable = `
     bill_type ENUM('Retail','Wholesale') DEFAULT 'Retail',
     bill_prefix VARCHAR(20) DEFAULT 'BILL-',
     barcode_enabled TINYINT(1) DEFAULT 0,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-  )
-`;
-
-const categoriesTable = `
-  CREATE TABLE IF NOT EXISTS categories (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    category_name VARCHAR(100) UNIQUE NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   )
 `;
@@ -110,12 +111,12 @@ const subscriptionsTable = `
 `;
 
 const billPdfsTable = `
-CREATE TABLE IF NOT EXISTS  bill_pdfs (
+CREATE TABLE IF NOT EXISTS bill_pdfs (
   id INT AUTO_INCREMENT PRIMARY KEY,
   bill_id INT NOT NULL,
   file_path VARCHAR(255) NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (bill_id) REFERENCES bills(id) ON DELETE CASCADE
+  FOREIGN KEY (bill_id) REFERENCES bills(bill_number) ON DELETE CASCADE
 )`;
 
 const purchasesTable = `CREATE TABLE IF NOT EXISTS purchases (
@@ -130,7 +131,7 @@ const purchasesTable = `CREATE TABLE IF NOT EXISTS purchases (
     CONSTRAINT fk_purchases_category FOREIGN KEY (category_id) REFERENCES categories(id)
 )`;
 
-const salesTable = `CREATE TABLE IF NOT EXISTS order_items (
+const salesTable = `CREATE TABLE IF NOT EXISTS sales (
     id INT AUTO_INCREMENT PRIMARY KEY,
     bill_items_id INT NOT NULL,
     product_id INT NOT NULL,
@@ -139,15 +140,18 @@ const salesTable = `CREATE TABLE IF NOT EXISTS order_items (
     selling_price DECIMAL(10,2) NOT NULL,
     total_amount DECIMAL(12,2) GENERATED ALWAYS AS (quantity * selling_price) STORED,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_order_items_bill_items FOREIGN KEY (bill_items_id) REFERENCES bill_items(id),
-    CONSTRAINT fk_order_items_product FOREIGN KEY (product_id) REFERENCES products(id),
-    CONSTRAINT fk_order_items_category FOREIGN KEY (category_id) REFERENCES categories(id)
+    CONSTRAINT fk_sales_bill_items FOREIGN KEY (bill_items_id) REFERENCES bill_items(id) ON DELETE CASCADE,
+    CONSTRAINT fk_sales_product FOREIGN KEY (product_id) REFERENCES products(id),
+    CONSTRAINT fk_sales_category FOREIGN KEY (category_id) REFERENCES categories(id)
 )`;
 
 async function createTables() {
   try {
     await db.query(customersTable);
     console.log("Customers table ready.");
+
+    await db.query(categoriesTable);
+    console.log("Categories table ready.");
 
     await db.query(productsTable);
     console.log("Products table ready.");
@@ -160,9 +164,6 @@ async function createTables() {
 
     await db.query(appUsersTable);
     console.log("App Users table ready.");
-
-    await db.query(categoriesTable);
-    console.log("Categories table ready.");
 
     await db.query(plansTable);
     console.log("Plans table ready.");
