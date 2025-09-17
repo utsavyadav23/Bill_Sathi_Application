@@ -14,7 +14,7 @@ const router = express.Router();
 // Setup Multer storage
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "uploads/");
+    cb(null, "uploads/images");
   },
   filename: (req, file, cb) => {
     const safeName = file.originalname.replace(/\s+/g, "-");

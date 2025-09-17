@@ -137,7 +137,6 @@ const cancelBill = async (req, res) => {
       });
     }
 
-    // If neither bill_id nor customer_id was provided
     await conn.rollback();
     return res
       .status(400)
@@ -227,15 +226,40 @@ const getBillSums = async (req, res) => {
 
 const getMonthSales = async (req, res) => {
   try {
-    const [rows] = await db.query(`
-      SELECT COALESCE(SUM(grand_total), 0) AS month_sales
+    const currentQuery = `
+      SELECT IFNULL(SUM(grand_total), 0) AS month_sales
       FROM bills
-      WHERE MONTH(created_at) = MONTH(CURDATE()) AND YEAR(created_at) = YEAR(CURDATE())
-    `);
+      WHERE MONTH(created_at) = MONTH(CURRENT_DATE())
+        AND YEAR(created_at) = YEAR(CURRENT_DATE())
+    `;
 
-    res.json({ month_sales: rows[0].month_sales || 0 });
-  } catch (err) {
-    console.error("Error fetching month sales:", err.message);
+    const prevQuery = `
+      SELECT IFNULL(SUM(grand_total), 0) AS last_month_sales
+      FROM bills
+      WHERE MONTH(created_at) = MONTH(CURRENT_DATE() - INTERVAL 1 MONTH)
+        AND YEAR(created_at) = YEAR(CURRENT_DATE() - INTERVAL 1 MONTH)
+    `;
+
+    const [rows] = await db.query(currentQuery);
+    const [prevRows] = await db.query(prevQuery);
+
+    const current = rows[0].month_sales;
+    const previous = prevRows[0].last_month_sales;
+
+    let growth = 0;
+    if (previous > 0) {
+      growth = ((current - previous) / previous) * 100;
+    } else if (current > 0) {
+      growth = 100;
+    }
+
+    res.json({
+      month_sales: current,
+      last_month_sales: previous,
+      growth: Math.round(growth),
+    });
+  } catch (error) {
+    console.error("Error fetching bill sums:", error);
     res.status(500).json({ error: "Database error" });
   }
 };

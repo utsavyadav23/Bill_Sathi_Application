@@ -182,7 +182,7 @@ const getProductById = async (req, res) => {
 
     const product = rows[0];
     product.image = product.image
-      ? `http://localhost:5000/uploads/${product.image}`
+      ? `http://localhost:5000/uploads/images/${product.image}`
       : null;
 
     res.json(product);
@@ -259,7 +259,7 @@ const bulkUpload = async (req, res) => {
 
       let imagePath = "";
       if (p.image && uploadedImages[p.image]) {
-        imagePath = `/uploads/${uploadedImages[p.image]}`;
+        imagePath = `/uploads/images/${uploadedImages[p.image]}`;
       }
 
       return [

@@ -12,6 +12,7 @@ const billRoutes = require("./routes/billRoutes");
 const billsAndDuesRoutes = require("./routes/billsAndDuesRoutes");
 const appUserRoutes = require("./routes/appUserRoutes");
 const purchaseRoutes = require("./routes/purchaseRoutes");
+const reportRoutes = require("./routes/reportRoutes");
 
 const app = express();
 app.use(cors());
@@ -29,6 +30,7 @@ app.use("/api/billpdfs", billRoutes);
 app.use("/api/billsanddues", billsAndDuesRoutes);
 app.use("/api/appusers", appUserRoutes);
 app.use("/api/purchases", purchaseRoutes);
+app.use("/api/reports", reportRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

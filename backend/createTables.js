@@ -81,13 +81,12 @@ const appUsersTable = `
 `;
 
 const reportsTable = `
-  CREATE TABLE IF NOT EXISTS reports (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    report_name VARCHAR(100) NOT NULL,
-    report_data TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-  )
-`;
+CREATE TABLE IF NOT EXISTS reports (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  month VARCHAR(20) NOT NULL,      
+  file_path VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+)`;
 
 const plansTable = `
   CREATE TABLE IF NOT EXISTS plans (
