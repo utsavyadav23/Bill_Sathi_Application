@@ -26,7 +26,7 @@ const StatBox = ({ title, value, icon }) => (
 
 const ActivityBox = ({ icon, title, time }) => (
   <div className="activity-box">
-    <img src={icon} alt={title} />
+    <img src={icon} alt="icon" />
     <div>
       <div className="activity-title">{title}</div>
       <div className="activity-time">
@@ -37,11 +37,27 @@ const ActivityBox = ({ icon, title, time }) => (
   </div>
 );
 
+const getIconByType = (type) => {
+  switch (type) {
+    case "bill_created":
+      return addNewIcon;
+    case "payment_received":
+      return MoneyIcon;
+    case "product_added":
+      return CartIcon;
+    case "inventory_updated":
+      return CartIcon;
+    default:
+      return ClockIcon;
+  }
+};
+
 export default function Dashboard() {
   const navigate = useNavigate();
   const [productCount, setProductCount] = useState(0);
   const [totalSales, setTotalSales] = useState(0);
   const [totalDue, setTotalDue] = useState(0);
+  const [activities, setActivities] = useState([]);
 
   const today = new Date();
   const dateStr = today.toLocaleDateString("en-US", {
@@ -76,23 +92,14 @@ export default function Dashboard() {
     { title: "Add Inventory", icon: CartIcon, path: "/Inventory" },
   ];
 
-  const activities = [
-    { icon: addNewIcon, title: "New Bill #456 created", time: "2 hrs ago" },
-    { icon: ScanIcon, title: "Product ABC scanned", time: "3 hrs ago" },
-    { icon: MoneyIcon, title: "Payment received ₹1,200", time: "5 hrs ago" },
-    {
-      icon: CartIcon,
-      title: "Inventory updated (20 items)",
-      time: "Yesterday",
-    },
-  ];
-
   const ActionBox = ({ title, icon, path }) => (
     <div className="action-box" onClick={() => navigate(path)}>
       <img src={icon} alt={title} />
       <span>{title}</span>
     </div>
   );
+
+  // Fetch product count
   useEffect(() => {
     const fetchCount = async () => {
       try {
@@ -107,6 +114,8 @@ export default function Dashboard() {
     fetchCount();
   }, []);
 
+  // Fetch today's sales and total due
+
   useEffect(() => {
     const fetchBillSums = async () => {
       try {
@@ -120,6 +129,21 @@ export default function Dashboard() {
       }
     };
     fetchBillSums();
+  }, []);
+
+  // Fetch recent activities
+  useEffect(() => {
+    const fetchActivities = async () => {
+      try {
+        const response = await axios.get(
+          "http://localhost:5000/api/appusers/latest?limit=5"
+        );
+        setActivities(response.data);
+      } catch (error) {
+        console.error("Error fetching activities:", error);
+      }
+    };
+    fetchActivities();
   }, []);
 
   return (
@@ -149,11 +173,17 @@ export default function Dashboard() {
           <ActionBox key={i} {...a} />
         ))}
       </div>
+
       {/* Recent Activity */}
       <div className="recent-activity">
         <h3>Recent Activity</h3>
-        {activities.map((a, i) => (
-          <ActivityBox key={i} {...a} />
+        {activities.map((a) => (
+          <ActivityBox
+            key={a.id}
+            icon={getIconByType(a.type)}
+            title={a.description}
+            time={new Date(a.created_at).toLocaleString("en-US")}
+          />
         ))}
       </div>
     </div>

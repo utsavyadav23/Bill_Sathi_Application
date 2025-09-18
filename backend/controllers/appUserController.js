@@ -81,4 +81,19 @@ const getAppUserSettings = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
-module.exports = { addAppUser, getAppUserSettings };
+
+const recentActivity = async (req, res) => {
+  const limit = parseInt(req.query.limit) || 5;
+  try {
+    const [rows] = await db.query(
+      "SELECT * FROM activity_log ORDER BY created_at DESC LIMIT ?",
+      [limit]
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error("Error fetching activity:", err);
+    res.status(500).json({ error: "Failed to fetch activity" });
+  }
+};
+
+module.exports = { addAppUser, getAppUserSettings, recentActivity };

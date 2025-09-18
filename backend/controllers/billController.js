@@ -56,6 +56,13 @@ const saveBill = async (req, res) => {
       [billId, customer_id]
     );
 
+    // Log activity
+    const billNumber = `BILL-${String(billId).padStart(4, "0")}`;
+    await db.query(
+      "INSERT INTO activity_log (type, description, created_at) VALUES (?, ?, NOW())",
+      ["bill_created", `New bill #${billNumber} created.`]
+    );
+
     await conn.commit();
 
     res.json({

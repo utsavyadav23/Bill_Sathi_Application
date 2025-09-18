@@ -38,6 +38,12 @@ const addProduct = async (req, res) => {
       );
     }
 
+    // Log activity
+    await db.query(
+      "INSERT INTO activity_log (type, description) VALUES (?, ?)",
+      ["product_added", `Product added: ${name} (${quantity} units).`]
+    );
+
     res.json({
       message: "Product added successfully!",
       productId: result.insertId,
@@ -256,12 +262,10 @@ const bulkUpload = async (req, res) => {
     const formattedProducts = products.map((p) => {
       const categoryId =
         categoryMap[p.category?.toLowerCase()] || categoryMap["others"];
-
       let imagePath = "";
       if (p.image && uploadedImages[p.image]) {
         imagePath = `/uploads/images/${uploadedImages[p.image]}`;
       }
-
       return [
         p.product_name || "",
         p.barcode || "",
@@ -283,7 +287,7 @@ const bulkUpload = async (req, res) => {
 
     if (result.insertId) {
       const insertedId = result.insertId;
-      const insertedCount = result.affectedRows;
+
       const purchases = formattedProducts
         .map((p, i) => {
           const stock = p[4];
@@ -308,7 +312,18 @@ const bulkUpload = async (req, res) => {
           [purchases]
         );
       }
+      //  Activity log
+      const productNames = formattedProducts.map((p) => p[0]).join(", ");
+      const totalProducts = formattedProducts.length;
+      await db.query(
+        "INSERT INTO activity_log (type, description, created_at) VALUES (?, ?, NOW())",
+        [
+          "product_added",
+          `Bulk upload: ${totalProducts} products added (${productNames}).`,
+        ]
+      );
     }
+
     res.json({
       success: true,
       message: "Products uploaded successfully",

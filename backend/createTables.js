@@ -144,6 +144,13 @@ const salesTable = `CREATE TABLE IF NOT EXISTS sales (
     CONSTRAINT fk_sales_category FOREIGN KEY (category_id) REFERENCES categories(id)
 )`;
 
+const activityTable = `CREATE TABLE activity_log (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  type VARCHAR(50) NOT NULL,                   
+  description VARCHAR(255) NOT NULL,           
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+)`;
+
 async function createTables() {
   try {
     await db.query(customersTable);
@@ -181,6 +188,9 @@ async function createTables() {
 
     await db.query(purchasesTable);
     console.log("Purchase table ready.");
+
+    await db.query(activityTable);
+    console.log("Activity table ready.");
 
     console.log("All tables created successfully!");
     process.exit(0);

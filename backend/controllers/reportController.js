@@ -48,9 +48,9 @@ const salesVsPurchases = async (req, res) => {
     const [rows] = await db.query(
       `SELECT 
           DATE_FORMAT(created_at, '%Y-%m') AS month,
-          SUM(total_amount) AS total_sales,
+          SUM(grand_total) AS total_sales,
           0 AS total_purchases
-       FROM sales
+       FROM bills
        WHERE YEAR(created_at) = YEAR(CURDATE())
        GROUP BY DATE_FORMAT(created_at, '%Y-%m')
        UNION ALL
